@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
 import { MovieCard } from '../components/MovieCard'
+import { DiscoverStrip } from '../components/DiscoverStrip'
 import styles from './LibraryPage.module.css'
 
 const STATUS_TABS = [
@@ -29,6 +30,7 @@ export function LibraryPage({
   onRate,
   onAdd,
   onSearchTmdb,
+  onAddFromDiscover,
   onStats,
   onExport,
   onImport,
@@ -240,6 +242,9 @@ export function LibraryPage({
           </div>
         )}
       </div>
+
+      {/* Discover strip */}
+      <DiscoverStrip onSelect={onAddFromDiscover} onExplore={onSearchTmdb} />
 
       {/* Grid */}
       <main className={styles.main}>

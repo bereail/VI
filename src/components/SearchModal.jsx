@@ -1,12 +1,52 @@
-import { useState, useEffect, useRef } from 'react'
-import { useMovieSearch, posterUrl } from '../hooks/useMovieSearch'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  useMovieSearch,
+  fetchTrending,
+  fetchDiscover,
+  searchPerson,
+  getTmdbGenres,
+} from '../hooks/useMovieSearch'
 import styles from './SearchModal.module.css'
+
+const TABS = [
+  { key: 'trending', label: '🔥 Tendencias' },
+  { key: 'popular', label: 'Popular' },
+  { key: 'top_rated', label: 'Mejor puntaje' },
+  { key: 'now_playing', label: 'En cines' },
+]
+
+const TAB_SORT = {
+  popular: 'popularity.desc',
+  top_rated: 'vote_average.desc',
+  now_playing: 'primary_release_date.desc',
+}
 
 export function SearchModal({ onSelect, onClose }) {
   const [query, setQuery] = useState('')
   const [loading2, setLoading2] = useState(false)
-  const { results, loading, error, search, getDetails, clear } = useMovieSearch()
+
+  // Discover state
+  const [tab, setTab] = useState('trending')
+  const [genres, setGenres] = useState([])
+  const [genreId, setGenreId] = useState('')
+  const [person, setPerson] = useState(null)
+  const [personQuery, setPersonQuery] = useState('')
+  const [personSuggestions, setPersonSuggestions] = useState([])
+  const [personLoading, setPersonLoading] = useState(false)
+  const [discoverResults, setDiscoverResults] = useState([])
+  const [discoverLoading, setDiscoverLoading] = useState(false)
+  const [discoverPage, setDiscoverPage] = useState(1)
+  const [discoverTotalPages, setDiscoverTotalPages] = useState(1)
+
   const inputRef = useRef(null)
+  const personTimerRef = useRef(null)
+  const loadIdRef = useRef(0)
+
+  const { results, loading, error, search, getDetails, clear } = useMovieSearch()
+
+  useEffect(() => {
+    getTmdbGenres().then(setGenres).catch(() => {})
+  }, [])
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -19,10 +59,71 @@ export function SearchModal({ onSelect, onClose }) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const handleChange = (e) => {
+  const loadDiscover = useCallback(async (currentTab, currentGenreId, currentPerson, page, append) => {
+    const id = ++loadIdRef.current
+    setDiscoverLoading(true)
+    try {
+      let movieResults, totalPages = 1, resultPage = 1
+
+      if (currentTab === 'trending' && !currentGenreId && !currentPerson) {
+        movieResults = await fetchTrending()
+      } else {
+        const sortBy = currentTab === 'trending' ? 'popularity.desc' : (TAB_SORT[currentTab] || 'popularity.desc')
+        const data = await fetchDiscover({
+          sortBy,
+          genreId: currentGenreId || undefined,
+          personId: currentPerson?.id,
+          personRole: currentPerson?.role,
+          page,
+        })
+        movieResults = data.results
+        totalPages = data.totalPages
+        resultPage = data.page
+      }
+
+      if (id !== loadIdRef.current) return
+      setDiscoverResults(prev => append ? [...prev, ...movieResults] : movieResults)
+      setDiscoverTotalPages(totalPages)
+      setDiscoverPage(resultPage)
+    } catch {
+      if (id === loadIdRef.current && !append) setDiscoverResults([])
+    } finally {
+      if (id === loadIdRef.current) setDiscoverLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (query) return
+    loadDiscover(tab, genreId, person, 1, false)
+  }, [query, tab, genreId, person, loadDiscover])
+
+  useEffect(() => {
+    clearTimeout(personTimerRef.current)
+    if (!personQuery.trim()) { setPersonSuggestions([]); return }
+    setPersonLoading(true)
+    personTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await searchPerson(personQuery)
+        setPersonSuggestions(res)
+      } catch {
+        setPersonSuggestions([])
+      } finally {
+        setPersonLoading(false)
+      }
+    }, 400)
+    return () => clearTimeout(personTimerRef.current)
+  }, [personQuery])
+
+  const handleQueryChange = (e) => {
     const v = e.target.value
     setQuery(v)
     search(v)
+  }
+
+  const handleClearQuery = () => {
+    setQuery('')
+    clear()
+    inputRef.current?.focus()
   }
 
   const handleSelect = async (movie) => {
@@ -37,50 +138,149 @@ export function SearchModal({ onSelect, onClose }) {
     }
   }
 
+  const handleTabChange = (newTab) => {
+    setTab(newTab)
+    setDiscoverResults([])
+  }
+
+  const handleGenreChange = (e) => {
+    setGenreId(e.target.value)
+    setDiscoverResults([])
+  }
+
+  const handlePersonSelect = (p) => {
+    setPerson(p)
+    setPersonQuery('')
+    setPersonSuggestions([])
+    setDiscoverResults([])
+  }
+
+  const handleClearPerson = () => {
+    setPerson(null)
+    setDiscoverResults([])
+  }
+
+  const handleLoadMore = () => {
+    const next = discoverPage + 1
+    loadDiscover(tab, genreId, person, next, true)
+  }
+
+  const isDiscover = !query
+  const displayResults = isDiscover ? discoverResults : results
+  const isLoading = isDiscover ? discoverLoading : (loading || loading2)
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className={`modal-panel ${styles.panel}`} onClick={(e) => e.stopPropagation()}>
+
+        {/* Barra de búsqueda */}
         <div className={styles.searchBar}>
           <span className={styles.icon}>🔍</span>
           <input
             ref={inputRef}
             value={query}
-            onChange={handleChange}
-            placeholder="Buscar película en TMDB..."
+            onChange={handleQueryChange}
+            placeholder="Buscar por título..."
             className={styles.input}
           />
           {query && (
-            <button className="btn btn-ghost" onClick={() => { setQuery(''); clear() }} aria-label="Limpiar">✕</button>
+            <button className="btn btn-ghost" onClick={handleClearQuery} aria-label="Limpiar">✕</button>
           )}
           <button className="btn btn-ghost" onClick={onClose} aria-label="Cerrar">Esc</button>
         </div>
 
-        {error && (
-          <div className={styles.error}>
-            <span>⚠️</span> {error}
+        {/* Tabs de descubrimiento */}
+        {isDiscover && (
+          <div className={styles.tabs}>
+            {TABS.map(t => (
+              <button
+                key={t.key}
+                className={`${styles.tab} ${tab === t.key ? styles.tabActive : ''}`}
+                onClick={() => handleTabChange(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
         )}
 
-        {(loading || loading2) && (
+        {/* Filtros */}
+        <div className={styles.filters}>
+          <select
+            value={genreId}
+            onChange={handleGenreChange}
+            className={styles.filterSelect}
+            aria-label="Género"
+          >
+            <option value="">Todos los géneros</option>
+            {genres.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+
+          {isDiscover && (
+            <div className={styles.personWrap}>
+              {person ? (
+                <div className={styles.personChip}>
+                  <span>{person.name}</span>
+                  <span className={styles.personRole}>
+                    {person.role === 'director' ? 'Director/a' : 'Actor/Actriz'}
+                  </span>
+                  <button className={styles.chipClose} onClick={handleClearPerson} aria-label="Quitar">✕</button>
+                </div>
+              ) : (
+                <div className={styles.personInputWrap}>
+                  <input
+                    value={personQuery}
+                    onChange={(e) => setPersonQuery(e.target.value)}
+                    placeholder="Actor, actriz o director/a..."
+                    className={styles.personInput}
+                    aria-label="Buscar persona"
+                  />
+                  {personLoading && <div className={styles.miniSpinner} />}
+                  {personSuggestions.length > 0 && (
+                    <div className={styles.personDropdown}>
+                      {personSuggestions.map(p => (
+                        <button
+                          key={p.id}
+                          className={styles.personOption}
+                          onClick={() => handlePersonSelect(p)}
+                        >
+                          <span className={styles.personName}>{p.name}</span>
+                          <span className={styles.personRole}>
+                            {p.role === 'director' ? 'Director/a' : 'Actor/Actriz'}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Error */}
+        {error && !isDiscover && (
+          <div className={styles.error}><span>⚠️</span> {error}</div>
+        )}
+
+        {/* Spinner inicial */}
+        {isLoading && displayResults.length === 0 && (
           <div className={styles.loading}>
             <div className={styles.spinner} />
-            <span>Buscando...</span>
+            <span>Cargando...</span>
           </div>
         )}
 
-        {!loading && !loading2 && results.length === 0 && query.length > 1 && !error && (
+        {/* Sin resultados de búsqueda */}
+        {!isDiscover && !loading && !loading2 && results.length === 0 && query.length > 1 && !error && (
           <div className={styles.empty}>Sin resultados para "{query}"</div>
         )}
 
-        {!loading && !loading2 && results.length === 0 && !query && (
-          <div className={styles.hint}>
-            <p>Buscá por título en español o inglés</p>
-            <p className={styles.hintSub}>Los datos se importan automáticamente desde TMDB</p>
-          </div>
-        )}
-
+        {/* Lista de resultados */}
         <div className={styles.results}>
-          {results.map((movie) => (
+          {displayResults.map((movie) => (
             <button
               key={movie.tmdbId}
               className={styles.result}
@@ -88,18 +288,18 @@ export function SearchModal({ onSelect, onClose }) {
             >
               <div className={styles.resultPoster}>
                 {movie.poster ? (
-                  <img src={posterUrl(null) || movie.poster} alt={movie.title} />
+                  <img src={movie.poster} alt={movie.title} loading="lazy" />
                 ) : (
                   <div className={styles.noPoster}>{movie.title[0]}</div>
                 )}
               </div>
               <div className={styles.resultInfo}>
                 <span className={styles.resultTitle}>{movie.title}</span>
-                {movie.originalTitle && movie.originalTitle !== movie.title && (
-                  <span className={styles.resultOriginal}>{movie.originalTitle}</span>
-                )}
                 <div className={styles.resultMeta}>
                   {movie.year && <span>{movie.year}</span>}
+                  {movie.tmdbRating > 0 && (
+                    <span className={styles.tmdbRating}>★ {movie.tmdbRating}</span>
+                  )}
                   {movie.genres.slice(0, 2).map((g) => (
                     <span key={g} className="tag">{g}</span>
                   ))}
@@ -111,6 +311,16 @@ export function SearchModal({ onSelect, onClose }) {
               <span className={styles.resultArrow}>→</span>
             </button>
           ))}
+
+          {isDiscover && discoverResults.length > 0 && discoverPage < discoverTotalPages && (
+            <button
+              className={styles.loadMore}
+              onClick={handleLoadMore}
+              disabled={discoverLoading}
+            >
+              {discoverLoading ? 'Cargando...' : 'Ver más'}
+            </button>
+          )}
         </div>
       </div>
     </div>

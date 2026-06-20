@@ -43,6 +43,10 @@ export default function CineMain({ user, onLogout }) {
     setModal({ type: 'add', data: tmdbMovie })
   }, [])
 
+  const handleAddFromDiscover = useCallback((tmdbMovie) => {
+    setModal({ type: 'add', data: tmdbMovie })
+  }, [])
+
   const handleApiKeyClose = useCallback((saved) => {
     if (saved && modal?.next === 'search') setModal({ type: 'search' })
     else close()
@@ -80,6 +84,7 @@ export default function CineMain({ user, onLogout }) {
         onRate={handleRate}
         onAdd={openAdd}
         onSearchTmdb={openSearch}
+        onAddFromDiscover={handleAddFromDiscover}
         onStats={openStats}
         onExport={exportData}
         onImport={handleImport}

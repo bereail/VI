@@ -30,13 +30,7 @@ async function tmdbFetch(path, params = {}) {
   const { _signal, ...rest } = params
   const url = new URL(`${BASE}${path}`)
   url.searchParams.set('language', 'es-MX')
-  // Use api_key as query param (simple GET, no CORS preflight)
-  // Bearer as header only if no api_key (header triggers CORS preflight)
-  if (apiKey) {
-    url.searchParams.set('api_key', apiKey)
-  } else {
-    // no api_key, must use bearer — caller must accept CORS may block
-  }
+  if (apiKey) url.searchParams.set('api_key', apiKey)
   Object.entries(rest).forEach(([k, v]) => url.searchParams.set(k, String(v)))
 
   const options = {}
@@ -46,29 +40,35 @@ async function tmdbFetch(path, params = {}) {
   const res = await fetch(url, options)
   if (!res.ok) throw new Error(`TMDB_${res.status}`)
   const data = await res.json()
-  // TMDB sometimes returns HTTP 200 with success:false on backend issues
   if (data.success === false) throw new Error(`TMDB_BACKEND_${data.status_code}`)
   return data
 }
 
-// Genres: fire-and-forget background load — never blocks search
+// ---- Genre cache ----
 let genreCache = null
+let genrePromise = null
 
-function loadGenresBackground() {
-  if (genreCache !== null) return          // already loaded or already failed
-  genreCache = {}                          // mark as "loading" so we don't fire twice
-  tmdbFetch('/genre/movie/list')
-    .then((data) => {
-      genreCache = {}
-      ;(data.genres || []).forEach((g) => { genreCache[g.id] = g.name })
-    })
-    .catch(() => {
-      genreCache = {}                      // fail silently, search still works
-    })
+function loadGenres() {
+  if (genrePromise) return genrePromise
+  genreCache = {}
+  genrePromise = tmdbFetch('/genre/movie/list')
+    .then(data => { (data.genres || []).forEach(g => { genreCache[g.id] = g.name }) })
+    .catch(() => {})
+  return genrePromise
 }
 
-function mapSearchResult(r) {
-  const genres = (r.genre_ids || []).map((id) => genreCache?.[id]).filter(Boolean)
+function loadGenresBackground() {
+  if (genreCache !== null) return
+  loadGenres()
+}
+
+async function ensureGenres() {
+  if (genreCache && Object.keys(genreCache).length > 0) return
+  await loadGenres()
+}
+
+function mapMovie(r) {
+  const genres = (r.genre_ids || []).map(id => genreCache?.[id]).filter(Boolean)
   return {
     tmdbId: r.id,
     title: r.title || r.original_title,
@@ -76,22 +76,72 @@ function mapSearchResult(r) {
     poster: r.poster_path ? posterUrl(r.poster_path) : null,
     overview: r.overview || '',
     genres,
+    tmdbRating: r.vote_average ? Math.round(r.vote_average * 10) / 10 : null,
     director: null,
   }
 }
 
 function mapDetails(r) {
-  const director = (r.credits?.crew || []).find((c) => c.job === 'Director')?.name || null
+  const director = (r.credits?.crew || []).find(c => c.job === 'Director')?.name || null
   return {
     tmdbId: r.id,
     title: r.title || r.original_title,
     year: r.release_date ? parseInt(r.release_date) : null,
     poster: r.poster_path ? posterUrl(r.poster_path) : null,
     overview: r.overview || '',
-    genres: (r.genres || []).map((g) => g.name),
+    genres: (r.genres || []).map(g => g.name),
     director,
   }
 }
+
+// ---- Public async API ----
+
+export async function getTmdbGenres() {
+  await ensureGenres()
+  return Object.entries(genreCache || {})
+    .map(([id, name]) => ({ id: Number(id), name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+}
+
+export async function fetchTrending() {
+  await ensureGenres()
+  const data = await tmdbFetch('/trending/movie/week')
+  return (data.results || []).map(mapMovie)
+}
+
+export async function fetchDiscover({ sortBy = 'popularity.desc', genreId, personId, personRole = 'cast', page = 1 } = {}) {
+  await ensureGenres()
+  const params = { sort_by: sortBy, page }
+  if (genreId) params.with_genres = genreId
+  if (personId) {
+    if (personRole === 'director') params.with_crew = personId
+    else params.with_cast = personId
+  }
+  if (sortBy === 'vote_average.desc') params['vote_count.gte'] = 500
+  const data = await tmdbFetch('/discover/movie', params)
+  return {
+    results: (data.results || []).map(mapMovie),
+    totalPages: Math.min(data.total_pages || 1, 10),
+    page: data.page || 1,
+  }
+}
+
+export async function searchPerson(query) {
+  if (!query.trim()) return []
+  const data = await tmdbFetch('/search/person', { query: query.trim() })
+  return (data.results || []).slice(0, 6).map(p => ({
+    id: p.id,
+    name: p.name,
+    role: p.known_for_department === 'Directing' ? 'director' : 'cast',
+  }))
+}
+
+export async function getMovieDetails(tmdbId) {
+  const data = await tmdbFetch(`/movie/${tmdbId}`, { append_to_response: 'credits' })
+  return mapDetails(data)
+}
+
+// ---- useMovieSearch hook ----
 
 export function useMovieSearch() {
   const [results, setResults] = useState([])
@@ -110,9 +160,7 @@ export function useMovieSearch() {
       return
     }
 
-    // Kick off genre load in background (won't block search)
     loadGenresBackground()
-
     setLoading(true)
     setError(null)
 
@@ -125,7 +173,7 @@ export function useMovieSearch() {
           include_adult: 'false',
           _signal: ctrl.signal,
         })
-        setResults((data.results || []).slice(0, 10).map(mapSearchResult))
+        setResults((data.results || []).slice(0, 10).map(mapMovie))
       } catch (err) {
         if (err.name === 'AbortError') return
         if (err.message === 'NO_KEY') {
@@ -145,8 +193,7 @@ export function useMovieSearch() {
   }, [])
 
   const getDetails = useCallback(async (tmdbId) => {
-    const data = await tmdbFetch(`/movie/${tmdbId}`, { append_to_response: 'credits' })
-    return mapDetails(data)
+    return getMovieDetails(tmdbId)
   }, [])
 
   const clear = useCallback(() => {
@@ -168,10 +215,12 @@ export function saveApiKey(key) {
     localStorage.setItem('vi_tmdb_key', trimmed)
   }
   genreCache = null
+  genrePromise = null
 }
 
 export function removeApiKey() {
   localStorage.removeItem('vi_tmdb_bearer')
   localStorage.removeItem('vi_tmdb_key')
   genreCache = null
+  genrePromise = null
 }
