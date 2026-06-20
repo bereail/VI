@@ -1,0 +1,34 @@
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--bg-4);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+  padding: 0;
+  line-height: 1;
+}
+
+.star.active {
+  color: var(--accent);
+}
+
+.star:hover {
+  transform: scale(1.2);
+}
+
+.readOnly .star {
+  cursor: default;
+}
+
+.readOnly .star:hover {
+  transform: none;
+}
+
+.sm .star { font-size: 14px; }
+.md .star { font-size: 18px; }
+.lg .star { font-size: 24px; }

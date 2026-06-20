@@ -1,0 +1,237 @@
+.wrapper {
+  width: var(--card-w);
+  height: calc(var(--card-w) * var(--card-ratio));
+  perspective: 1000px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-md);
+}
+
+.card:hover:not(.flipped) {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* ---- FRONT ---- */
+.poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.initials {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: -2px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.05) 0%,
+    rgba(0,0,0,0) 35%,
+    rgba(0,0,0,0.7) 75%,
+    rgba(0,0,0,0.9) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.statusBadge {
+  align-self: flex-end;
+}
+
+.titleBar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+.cardYear {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+}
+
+.miniStars {
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+/* ---- BACK ---- */
+.back {
+  transform: rotateY(180deg);
+  background: var(--bg-2);
+  cursor: default;
+}
+
+.backBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(12px) saturate(0.6) brightness(0.3);
+  transform: scale(1.1);
+}
+
+.backContent {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  overflow-y: auto;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: none;
+}
+
+.backContent::-webkit-scrollbar { display: none; }
+
+.backHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.backTitle {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1.25;
+}
+
+.backMeta {
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 3px;
+}
+
+.closeBtn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  padding: 0;
+  border-radius: var(--radius-xs);
+}
+
+.genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.overview {
+  font-size: 11.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ratingLabel {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.watchedDate {
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.notes {
+  font-size: 11px;
+  color: var(--text-2);
+  font-style: italic;
+  line-height: 1.4;
+  background: var(--accent-dim);
+  border-left: 2px solid var(--accent);
+  padding: 6px 8px;
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.actions .btn {
+  flex: 1;
+  justify-content: center;
+  font-size: 12px;
+  padding: 7px 6px;
+  min-width: 0;
+}
