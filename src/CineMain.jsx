@@ -4,16 +4,20 @@ import { MovieModal } from './components/MovieModal'
 import { SearchModal } from './components/SearchModal'
 import { StatsModal } from './components/StatsModal'
 import { ApiKeyModal } from './components/ApiKeyModal'
+import { ConfirmModal } from './components/ConfirmModal'
 import { useMovies } from './hooks/useMovies'
 import { useTheme } from './hooks/useTheme'
 import { useKeyboard } from './hooks/useKeyboard'
+import { useToast } from './hooks/useToast'
 import { hasApiKey } from './hooks/useMovieSearch'
 
 export default function CineMain({ user, onLogout }) {
-  const { movies, addMovie, updateMovie, deleteMovie, markWatched, markPending, exportData, importData, stats, uniqueGenres, uniqueDirectors } = useMovies(user.email)
+  const { movies, addMovie, updateMovie, deleteMovie, restoreMovie, togglePriority, markWatched, markPending, exportData, importData, stats, uniqueGenres, uniqueDirectors } = useMovies(user.email)
   const { theme, toggle: toggleTheme } = useTheme()
+  const toast = useToast()
 
   const [modal, setModal] = useState(null)
+  const [pendingImport, setPendingImport] = useState(null)
 
   const close = useCallback(() => setModal(null), [])
   const openAdd = useCallback(() => setModal({ type: 'add' }), [])
@@ -36,14 +40,17 @@ export default function CineMain({ user, onLogout }) {
   }, [updateMovie])
 
   const handleDelete = useCallback((id) => {
-    if (window.confirm('¿Eliminar esta película de tu filmoteka?')) deleteMovie(id)
-  }, [deleteMovie])
+    const movie = movies.find(m => m.id === id)
+    deleteMovie(id)
+    toast({
+      message: `"${movie?.title}" eliminada`,
+      actionLabel: 'Deshacer',
+      action: () => restoreMovie(movie),
+      duration: 5000,
+    })
+  }, [movies, deleteMovie, restoreMovie, toast])
 
-  const handleSearchSelect = useCallback((tmdbMovie) => {
-    setModal({ type: 'add', data: tmdbMovie })
-  }, [])
-
-  const handleAddFromDiscover = useCallback((tmdbMovie) => {
+  const handleTmdbSelect = useCallback((tmdbMovie) => {
     setModal({ type: 'add', data: tmdbMovie })
   }, [])
 
@@ -52,14 +59,23 @@ export default function CineMain({ user, onLogout }) {
     else close()
   }, [modal, close])
 
-  const handleImport = useCallback(async (file) => {
+  const executeImport = useCallback(async (file) => {
+    setPendingImport(null)
     try {
       const count = await importData(file)
-      alert(`Se importaron ${count} películas.`)
+      toast({ message: `Se importaron ${count} películas`, type: 'success' })
     } catch (e) {
-      alert('Error al importar: ' + e.message)
+      toast({ message: 'Error al importar: ' + e.message, type: 'error' })
     }
-  }, [importData])
+  }, [importData, toast])
+
+  const handleImport = useCallback((file) => {
+    if (movies.length > 0) {
+      setPendingImport(file)
+    } else {
+      executeImport(file)
+    }
+  }, [movies, executeImport])
 
   useKeyboard({
     n: openAdd,
@@ -84,7 +100,7 @@ export default function CineMain({ user, onLogout }) {
         onRate={handleRate}
         onAdd={openAdd}
         onSearchTmdb={openSearch}
-        onAddFromDiscover={handleAddFromDiscover}
+        onAddFromDiscover={handleTmdbSelect}
         onStats={openStats}
         onExport={exportData}
         onImport={handleImport}
@@ -92,6 +108,7 @@ export default function CineMain({ user, onLogout }) {
         theme={theme}
         onApiKey={openApiKey}
         onLogout={onLogout}
+        onTogglePriority={togglePriority}
       />
 
       {(modal?.type === 'add' || modal?.type === 'edit') && (
@@ -103,7 +120,7 @@ export default function CineMain({ user, onLogout }) {
       )}
 
       {modal?.type === 'search' && (
-        <SearchModal onSelect={handleSearchSelect} onClose={close} />
+        <SearchModal onSelect={handleTmdbSelect} onClose={close} />
       )}
 
       {modal?.type === 'stats' && (
@@ -112,6 +129,16 @@ export default function CineMain({ user, onLogout }) {
 
       {modal?.type === 'apikey' && (
         <ApiKeyModal onClose={handleApiKeyClose} />
+      )}
+
+      {pendingImport && (
+        <ConfirmModal
+          message={`Tenés ${movies.length} película${movies.length !== 1 ? 's' : ''} guardadas. Esto las reemplazará con el archivo importado.`}
+          confirmLabel="Reemplazar"
+          cancelLabel="Cancelar"
+          onConfirm={() => executeImport(pendingImport)}
+          onCancel={() => setPendingImport(null)}
+        />
       )}
     </>
   )

@@ -1,0 +1,88 @@
+import { StarRating } from './StarRating'
+import styles from './MovieRow.module.css'
+
+function formatRuntime(min) {
+  if (!min) return null
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  if (!h) return `${m}min`
+  if (!m) return `${h}h`
+  return `${h}h ${m}min`
+}
+
+export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending, onRate, onTogglePriority }) {
+  const { id, title, year, director, genres = [], poster, coverColor, status, rating, runtime, priority } = movie
+  const isWatched = status === 'vista'
+
+  return (
+    <div className={styles.row}>
+      <div className={styles.poster}>
+        {poster
+          ? <img src={poster} alt={title} loading="lazy" />
+          : (
+            <div className={styles.noPoster} style={{ background: coverColor || '#1a2a4a' }}>
+              {title.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
+            </div>
+          )
+        }
+      </div>
+
+      <div className={styles.info}>
+        <div className={styles.titleRow}>
+          <span className={styles.title} title={title}>{title}</span>
+          {year && <span className={styles.year}>{year}</span>}
+          {isWatched
+            ? <span className="badge badge-watched">✓ Vista</span>
+            : <span className="badge badge-pending">◷ Pendiente</span>
+          }
+        </div>
+        <div className={styles.meta}>
+          {director && <span>{director}</span>}
+          {runtime && <span>{formatRuntime(runtime)}</span>}
+          {genres.slice(0, 3).map(g => <span key={g} className="tag">{g}</span>)}
+        </div>
+      </div>
+
+      <div className={styles.rating}>
+        <StarRating value={rating} onChange={v => onRate(id, v)} size="sm" />
+      </div>
+
+      <div className={styles.actions}>
+        {!isWatched && (
+          <button
+            className={`${styles.iconBtn} ${priority ? styles.priorityActive : ''}`}
+            onClick={() => onTogglePriority(id)}
+            title={priority ? 'Quitar prioridad' : 'Alta prioridad'}
+            aria-label="Prioridad"
+          >
+            {priority ? '★' : '☆'}
+          </button>
+        )}
+        <button className={styles.iconBtn} onClick={() => onEdit(movie)} title="Editar">✏️</button>
+        {isWatched
+          ? (
+            <button className={styles.iconBtn} onClick={() => onMarkPending(id)} title="Mover a pendientes">
+              ◷
+            </button>
+          )
+          : (
+            <button
+              className={`${styles.iconBtn} ${styles.watchedBtn}`}
+              onClick={() => onMarkWatched(id, new Date().toISOString().slice(0, 10))}
+              title="Marcar como vista (hoy)"
+            >
+              ✓
+            </button>
+          )
+        }
+        <button
+          className={`${styles.iconBtn} ${styles.deleteBtn}`}
+          onClick={() => onDelete(id)}
+          title="Eliminar"
+        >
+          🗑
+        </button>
+      </div>
+    </div>
+  )
+}

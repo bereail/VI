@@ -1,0 +1,26 @@
+.panel {
+  background: var(--bg-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--bg-3);
+  padding: 28px 24px 20px;
+  max-width: 380px;
+  width: 100%;
+  animation: scaleIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.message {
+  font-size: 15px;
+  color: var(--text-1);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

@@ -1,0 +1,19 @@
+{
+  "name": "VI — Tu filmoteka",
+  "short_name": "VI",
+  "description": "Tu colección de películas personal",
+  "start_url": "/vi/",
+  "scope": "/vi/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#e8b86d",
+  "icons": [
+    {
+      "src": "/vi/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

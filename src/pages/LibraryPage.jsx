@@ -1,6 +1,8 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { MovieCard } from '../components/MovieCard'
+import { MovieRow } from '../components/MovieRow'
 import { DiscoverStrip } from '../components/DiscoverStrip'
+import { useDebounce } from '../hooks/useDebounce'
 import styles from './LibraryPage.module.css'
 
 const STATUS_TABS = [
@@ -15,7 +17,12 @@ const SORT_OPTIONS = [
   { key: 'rating', label: 'Mejor puntuadas' },
   { key: 'title', label: 'A → Z' },
   { key: 'year', label: 'Año' },
+  { key: 'priority', label: 'Prioridad' },
 ]
+
+function getParam(key, fallback = '') {
+  return new URLSearchParams(window.location.search).get(key) ?? fallback
+}
 
 export function LibraryPage({
   movies,
@@ -38,26 +45,60 @@ export function LibraryPage({
   theme,
   onApiKey,
   onLogout,
+  onTogglePriority,
 }) {
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('all')
-  const [genre, setGenre] = useState('')
-  const [director, setDirector] = useState('')
+  const [search, setSearch] = useState(() => getParam('q'))
+  const [status, setStatus] = useState(() => getParam('status') || 'all')
+  const [genre, setGenre] = useState(() => getParam('genre'))
+  const [director, setDirector] = useState(() => getParam('director'))
+  const [decade, setDecade] = useState(() => getParam('decade'))
+  const [minRating, setMinRating] = useState(() => Number(getParam('rating')) || 0)
   const [sort, setSort] = useState('recent')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [view, setView] = useState(() => localStorage.getItem('vi_view') || 'grid')
   const importRef = useRef(null)
+
+  const debouncedSearch = useDebounce(search, 200)
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (status !== 'all') params.set('status', status)
+    if (genre) params.set('genre', genre)
+    if (director) params.set('director', director)
+    if (decade) params.set('decade', decade)
+    if (minRating > 0) params.set('rating', String(minRating))
+    if (search) params.set('q', search)
+    const str = params.toString()
+    window.history.replaceState(null, '', str ? `?${str}` : window.location.pathname)
+  }, [status, genre, director, decade, minRating, search])
+
+  const setViewAndPersist = useCallback((v) => {
+    setView(v)
+    localStorage.setItem('vi_view', v)
+  }, [])
+
+  const uniqueDecades = useMemo(() => {
+    const set = new Set()
+    movies.forEach(m => { if (m.year) set.add(Math.floor(m.year / 10) * 10) })
+    return [...set].sort((a, b) => b - a)
+  }, [movies])
 
   const filtered = useMemo(() => {
     let list = [...movies]
 
     if (status !== 'all') list = list.filter((m) => m.status === status)
-
     if (genre) list = list.filter((m) => (m.genres || []).includes(genre))
-
     if (director) list = list.filter((m) => m.director === director)
 
-    if (search.trim()) {
-      const q = search.trim().toLowerCase()
+    if (decade) {
+      const d = parseInt(decade)
+      list = list.filter(m => m.year && Math.floor(m.year / 10) * 10 === d)
+    }
+
+    if (minRating > 0) list = list.filter(m => (m.rating || 0) >= minRating)
+
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.trim().toLowerCase()
       list = list.filter(
         (m) =>
           m.title?.toLowerCase().includes(q) ||
@@ -81,14 +122,17 @@ export function LibraryPage({
       case 'year':
         list.sort((a, b) => (b.year || 0) - (a.year || 0))
         break
+      case 'priority':
+        list.sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0) || new Date(b.addedDate) - new Date(a.addedDate))
+        break
       default:
         list.sort((a, b) => new Date(b.addedDate) - new Date(a.addedDate))
     }
 
     return list
-  }, [movies, status, genre, director, search, sort])
+  }, [movies, status, genre, director, decade, minRating, debouncedSearch, sort])
 
-  const activeFilters = [genre, director].filter(Boolean).length
+  const activeFilters = [genre, director, decade, minRating > 0 ? 'r' : ''].filter(Boolean).length
 
   const handleImportClick = useCallback(() => importRef.current?.click(), [])
 
@@ -101,6 +145,8 @@ export function LibraryPage({
   const clearFilters = useCallback(() => {
     setGenre('')
     setDirector('')
+    setDecade('')
+    setMinRating(0)
     setSearch('')
     setStatus('all')
   }, [])
@@ -122,25 +168,15 @@ export function LibraryPage({
         </div>
         <div className={styles.headerRight}>
           <span className={styles.userEmail} title={user?.email}>{user?.email}</span>
-          <button className="btn btn-ghost" onClick={onStats} aria-label="Estadísticas">
-            📊
-          </button>
-          <button className="btn btn-ghost" onClick={onApiKey} title="Configurar TMDB API key" aria-label="API key">
-            ⚙️
-          </button>
+          <button className="btn btn-ghost" onClick={onStats} aria-label="Estadísticas">📊</button>
+          <button className="btn btn-ghost" onClick={onApiKey} title="Configurar TMDB API key" aria-label="API key">⚙️</button>
           <button className="btn btn-ghost" onClick={onToggleTheme} aria-label="Cambiar tema">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
-          <button className="btn btn-ghost" onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">
-            ↩
-          </button>
+          <button className="btn btn-ghost" onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">↩</button>
           <div className={styles.headerMenu}>
-            <button className="btn btn-ghost" onClick={onExport} title="Exportar" aria-label="Exportar">
-              ⬆️
-            </button>
-            <button className="btn btn-ghost" onClick={handleImportClick} title="Importar" aria-label="Importar">
-              ⬇️
-            </button>
+            <button className="btn btn-ghost" onClick={onExport} title="Exportar" aria-label="Exportar">⬆️</button>
+            <button className="btn btn-ghost" onClick={handleImportClick} title="Importar" aria-label="Importar">⬇️</button>
             <input
               ref={importRef}
               type="file"
@@ -150,18 +186,13 @@ export function LibraryPage({
               aria-hidden
             />
           </div>
-          <button className="btn btn-ghost" onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">
-            🔍 TMDB
-          </button>
-          <button className="btn btn-primary" onClick={onAdd} aria-label="Agregar película (N)">
-            + Agregar
-          </button>
+          <button className="btn btn-ghost" onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">🔍 TMDB</button>
+          <button className="btn btn-primary" onClick={onAdd} aria-label="Agregar película (N)">+ Agregar</button>
         </div>
       </header>
 
       {/* Controls */}
       <div className={styles.controls}>
-        {/* Search */}
         <div className={styles.searchWrap}>
           <span className={styles.searchIcon}>🔍</span>
           <input
@@ -177,24 +208,23 @@ export function LibraryPage({
         </div>
 
         <div className={styles.controlsRow}>
-          {/* Status tabs */}
           <div className={styles.tabs}>
-            {STATUS_TABS.map((t) => (
-              <button
-                key={t.key}
-                className={`${styles.tab} ${status === t.key ? styles.tabActive : ''}`}
-                onClick={() => setStatus(t.key)}
-              >
-                {t.label}
-                {t.key === 'all' && movies.length > 0 && (
-                  <span className={styles.tabCount}>{movies.length}</span>
-                )}
-              </button>
-            ))}
+            {STATUS_TABS.map((t) => {
+              const count = t.key === 'all' ? movies.length : t.key === 'vista' ? stats.watched : stats.pending
+              return (
+                <button
+                  key={t.key}
+                  className={`${styles.tab} ${status === t.key ? styles.tabActive : ''}`}
+                  onClick={() => setStatus(t.key)}
+                >
+                  {t.label}
+                  {count > 0 && <span className={styles.tabCount}>{count}</span>}
+                </button>
+              )
+            })}
           </div>
 
           <div className={styles.controlsRight}>
-            {/* Sort */}
             <select
               className={styles.sortSelect}
               value={sort}
@@ -206,7 +236,21 @@ export function LibraryPage({
               ))}
             </select>
 
-            {/* Filters toggle */}
+            <div className={styles.viewToggle}>
+              <button
+                className={`${styles.viewBtn} ${view === 'grid' ? styles.viewActive : ''}`}
+                onClick={() => setViewAndPersist('grid')}
+                aria-label="Vista cuadrícula"
+                title="Cuadrícula"
+              >⊞</button>
+              <button
+                className={`${styles.viewBtn} ${view === 'list' ? styles.viewActive : ''}`}
+                onClick={() => setViewAndPersist('list')}
+                aria-label="Vista lista"
+                title="Lista"
+              >☰</button>
+            </div>
+
             <button
               className={`btn btn-secondary ${filtersOpen ? styles.filterBtnActive : ''}`}
               onClick={() => setFiltersOpen((o) => !o)}
@@ -217,7 +261,6 @@ export function LibraryPage({
           </div>
         </div>
 
-        {/* Advanced filters */}
         {filtersOpen && (
           <div className={styles.filters}>
             <div className={styles.filterField}>
@@ -234,6 +277,26 @@ export function LibraryPage({
                 {uniqueDirectors.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
+            {uniqueDecades.length > 0 && (
+              <div className={styles.filterField}>
+                <label>Década</label>
+                <select value={decade} onChange={(e) => setDecade(e.target.value)}>
+                  <option value="">Todas las décadas</option>
+                  {uniqueDecades.map(d => <option key={d} value={String(d)}>{d}s</option>)}
+                </select>
+              </div>
+            )}
+            <div className={styles.filterField}>
+              <label>Puntuación mínima</label>
+              <select value={minRating} onChange={(e) => setMinRating(Number(e.target.value))}>
+                <option value={0}>Cualquier puntuación</option>
+                <option value={1}>★ 1+</option>
+                <option value={2}>★★ 2+</option>
+                <option value={3}>★★★ 3+</option>
+                <option value={4}>★★★★ 4+</option>
+                <option value={5}>★★★★★ Solo 5</option>
+              </select>
+            </div>
             {activeFilters > 0 && (
               <button className="btn btn-ghost" onClick={clearFilters} style={{ alignSelf: 'flex-end' }}>
                 Limpiar filtros
@@ -243,17 +306,15 @@ export function LibraryPage({
         )}
       </div>
 
-      {/* Discover strip */}
       <DiscoverStrip onSelect={onAddFromDiscover} onExplore={onSearchTmdb} />
 
-      {/* Grid */}
       <main className={styles.main}>
         {filtered.length === 0 && movies.length > 0 ? (
           <div className={styles.emptyState}>
             <p>Sin resultados para esa búsqueda</p>
             <button className="btn btn-secondary" onClick={clearFilters}>Limpiar filtros</button>
           </div>
-        ) : (
+        ) : view === 'grid' ? (
           <div className={styles.grid}>
             {filtered.map((movie) => (
               <MovieCard
@@ -264,13 +325,28 @@ export function LibraryPage({
                 onMarkWatched={onMarkWatched}
                 onMarkPending={onMarkPending}
                 onRate={onRate}
+                onTogglePriority={onTogglePriority}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className={styles.list}>
+            {filtered.map((movie) => (
+              <MovieRow
+                key={movie.id}
+                movie={movie}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onMarkWatched={onMarkWatched}
+                onMarkPending={onMarkPending}
+                onRate={onRate}
+                onTogglePriority={onTogglePriority}
               />
             ))}
           </div>
         )}
       </main>
 
-      {/* Keyboard shortcuts hint */}
       <div className={styles.shortcuts}>
         <span><kbd>N</kbd> nueva</span>
         <span><kbd>B</kbd> buscar TMDB</span>

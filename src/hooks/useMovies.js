@@ -56,6 +56,17 @@ export function useMovies(userEmail) {
     persist((prev) => prev.filter((m) => m.id !== id))
   }, [persist])
 
+  const restoreMovie = useCallback((movie) => {
+    persist((prev) => {
+      if (prev.some(m => m.id === movie.id)) return prev
+      return [movie, ...prev]
+    })
+  }, [persist])
+
+  const togglePriority = useCallback((id) => {
+    persist((prev) => prev.map(m => m.id === id ? { ...m, priority: !m.priority } : m))
+  }, [persist])
+
   const markWatched = useCallback((id, date) => {
     updateMovie(id, {
       status: 'vista',
@@ -86,13 +97,17 @@ export function useMovies(userEmail) {
       reader.onload = (e) => {
         try {
           const parsed = JSON.parse(e.target.result)
-          const list = Array.isArray(parsed) ? parsed : (parsed.movies ?? [])
+          const raw = Array.isArray(parsed) ? parsed : (parsed.movies ?? [])
+          if (!Array.isArray(raw)) throw new Error('Formato inválido')
+          const list = raw.filter(m => m && typeof m === 'object' && typeof m.title === 'string' && m.title.trim())
+          if (list.length === 0) throw new Error('No se encontraron películas válidas')
           persist(list)
           resolve(list.length)
-        } catch {
-          reject(new Error('Archivo inválido'))
+        } catch (err) {
+          reject(new Error(err.message || 'Archivo inválido'))
         }
       }
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo'))
       reader.readAsText(file)
     })
   }, [persist])
@@ -167,6 +182,8 @@ export function useMovies(userEmail) {
     addMovie,
     updateMovie,
     deleteMovie,
+    restoreMovie,
+    togglePriority,
     markWatched,
     markPending,
     exportData,

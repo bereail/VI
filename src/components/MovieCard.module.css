@@ -235,3 +235,42 @@
   padding: 7px 6px;
   min-width: 0;
 }
+
+.datePicker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.dateInput {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  padding: 6px 6px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--accent);
+  background: var(--bg-3);
+  color: var(--text-1);
+  cursor: pointer;
+}
+
+.datePicker .btn {
+  font-size: 12px;
+  padding: 7px 8px;
+  flex-shrink: 0;
+}
+
+.priorityStar {
+  font-size: 13px;
+  color: var(--accent);
+  text-shadow: 0 0 6px rgba(232, 184, 109, 0.6);
+  line-height: 1;
+}
+
+.priorityBtn {
+  flex: none !important;
+  padding: 7px 8px !important;
+  font-size: 13px;
+}
