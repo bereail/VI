@@ -3,12 +3,14 @@ import { useState, useRef, useCallback } from 'react'
 const BASE = 'https://api.themoviedb.org/3'
 export const IMG_BASE = 'https://image.tmdb.org/t/p'
 
+const DEFAULT_API_KEY = 'f14d67712e440235df03189a794d9aab'
+
 function getBearer() {
   return import.meta.env.VITE_TMDB_BEARER_TOKEN || localStorage.getItem('vi_tmdb_bearer') || ''
 }
 
 function getApiKey() {
-  return import.meta.env.VITE_TMDB_API_KEY || localStorage.getItem('vi_tmdb_key') || ''
+  return import.meta.env.VITE_TMDB_API_KEY || localStorage.getItem('vi_tmdb_key') || DEFAULT_API_KEY
 }
 
 export function hasApiKey() {
