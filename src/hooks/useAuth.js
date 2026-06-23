@@ -1,74 +1,44 @@
 import { useState, useCallback } from 'react'
+import { api, setToken, getToken } from '../api'
 
-const USERS_KEY = 'vi_users'
-const SESSION_KEY = 'vi_session'
-
-async function hashPassword(email, password) {
-  const data = new TextEncoder().encode(`${email}:${password}`)
-  const buf = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('')
-}
-
-function loadUsers() {
+function emailFromToken(token) {
   try {
-    return JSON.parse(localStorage.getItem(USERS_KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
-
-function saveUsers(users) {
-  try {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users))
-  } catch { /* ignore */ }
-}
-
-function loadSession() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    return raw ? JSON.parse(raw) : null
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.email || null
   } catch {
     return null
   }
+}
+
+function loadSession() {
+  const token = getToken()
+  if (!token) return null
+  const email = emailFromToken(token)
+  if (!email) return null
+  return { email }
 }
 
 export function useAuth() {
   const [user, setUser] = useState(loadSession)
 
   const login = useCallback(async (email, password) => {
-    const users = loadUsers()
-    const norm = email.trim().toLowerCase()
-    if (!users[norm]) throw new Error('No existe una cuenta con ese email.')
-    const hash = await hashPassword(norm, password)
-    if (users[norm].passwordHash !== hash) throw new Error('Contraseña incorrecta.')
-    const session = { email: norm }
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session))
-    setUser(session)
+    const data = await api.post('/auth/login', { email, password })
+    setToken(data.token)
+    setUser({ email: data.email })
   }, [])
 
   const register = useCallback(async (email, password) => {
-    const users = loadUsers()
-    const norm = email.trim().toLowerCase()
-    if (users[norm]) throw new Error('Ya existe una cuenta con ese email.')
-    const hash = await hashPassword(norm, password)
-    users[norm] = { email: norm, passwordHash: hash }
-    saveUsers(users)
-    const session = { email: norm }
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session))
-    setUser(session)
+    const data = await api.post('/auth/register', { email, password })
+    setToken(data.token)
+    setUser({ email: data.email })
   }, [])
 
-  const resetPassword = useCallback(async (email, newPassword) => {
-    const users = loadUsers()
-    const norm = email.trim().toLowerCase()
-    if (!users[norm]) throw new Error('No existe una cuenta con ese email.')
-    const hash = await hashPassword(norm, newPassword)
-    users[norm].passwordHash = hash
-    saveUsers(users)
+  const resetPassword = useCallback(async (email, password) => {
+    await api.post('/auth/reset-password', { email, password })
   }, [])
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(SESSION_KEY)
+    setToken(null)
     setUser(null)
   }, [])
 

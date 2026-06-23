@@ -48,6 +48,7 @@ export function LibraryPage({
   onApiKey,
   onLogout,
   onTogglePriority,
+  onOpenAdmin,
 }) {
   const [search, setSearch] = useState(() => getParam('q'))
   const [status, setStatus] = useState(() => getParam('status') || 'all')
@@ -175,6 +176,9 @@ export function LibraryPage({
           <button className="btn btn-ghost" onClick={onToggleTheme} aria-label="Cambiar tema">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
+          {onOpenAdmin && (
+            <button className="btn btn-ghost" onClick={onOpenAdmin} aria-label="Panel admin" title="Panel admin">👥</button>
+          )}
           <button className="btn btn-ghost" onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">↩</button>
           <div className={styles.headerMenu}>
             <button className="btn btn-ghost" onClick={onExport} title="Exportar" aria-label="Exportar">⬆️</button>

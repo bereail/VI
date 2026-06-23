@@ -1,82 +1,82 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { api } from '../api'
 
-function storageKey(email) {
-  return `vi_movies_${email}`
-}
+const MIGRATED_KEY = 'vi_migrated_v2'
 
-function load(email) {
+async function migrateLocalStorage(email) {
+  if (localStorage.getItem(MIGRATED_KEY)) return
+  const key = `vi_movies_${email}`
   try {
-    const raw = localStorage.getItem(storageKey(email))
-    return raw ? JSON.parse(raw) : []
-  } catch (err) {
-    console.warn('[useMovies] No se pudo leer datos guardados:', err)
-    return []
-  }
-}
-
-function save(email, movies) {
-  try {
-    localStorage.setItem(storageKey(email), JSON.stringify(movies))
-  } catch { /* storage full */ }
-}
-
-function newId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const raw = localStorage.getItem(key)
+    if (raw) {
+      const movies = JSON.parse(raw)
+      if (Array.isArray(movies) && movies.length > 0) {
+        await Promise.all(movies.map(m => api.post('/movies', m).catch(() => {})))
+      }
+    }
+  } catch { /* ignore */ }
+  localStorage.setItem(MIGRATED_KEY, '1')
 }
 
 export function useMovies(userEmail) {
-  const [movies, setMovies] = useState(() => load(userEmail))
+  const [movies, setMovies] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const persist = useCallback((updater) => {
-    setMovies((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater
-      save(userEmail, next)
-      return next
-    })
+  useEffect(() => {
+    if (!userEmail) return
+    let cancelled = false
+    setLoading(true)
+    migrateLocalStorage(userEmail)
+      .then(() => api.get('/movies'))
+      .then(data => { if (!cancelled) setMovies(data) })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [userEmail])
 
-  const addMovie = useCallback((data) => {
-    const movie = {
-      id: newId(),
-      addedDate: new Date().toISOString(),
+  const addMovie = useCallback(async (data) => {
+    const movie = await api.post('/movies', {
       status: 'pendiente',
       rating: 0,
-      watchedDate: null,
       notes: '',
+      addedDate: new Date().toISOString(),
       ...data,
-    }
-    persist((prev) => [movie, ...prev])
-    return movie
-  }, [persist])
-
-  const updateMovie = useCallback((id, changes) => {
-    persist((prev) => prev.map((m) => (m.id === id ? { ...m, ...changes } : m)))
-  }, [persist])
-
-  const deleteMovie = useCallback((id) => {
-    persist((prev) => prev.filter((m) => m.id !== id))
-  }, [persist])
-
-  const restoreMovie = useCallback((movie) => {
-    persist((prev) => {
-      if (prev.some(m => m.id === movie.id)) return prev
-      return [movie, ...prev]
     })
-  }, [persist])
+    setMovies(prev => [movie, ...prev])
+    return movie
+  }, [])
 
-  const togglePriority = useCallback((id) => {
-    persist((prev) => prev.map(m => m.id === id ? { ...m, priority: !m.priority } : m))
-  }, [persist])
+  const updateMovie = useCallback(async (id, changes) => {
+    const updated = await api.put(`/movies/${id}`, changes)
+    setMovies(prev => prev.map(m => m.id === id ? updated : m))
+  }, [])
 
-  const markWatched = useCallback((id, date) => {
-    updateMovie(id, {
+  const deleteMovie = useCallback(async (id) => {
+    await api.delete(`/movies/${id}`)
+    setMovies(prev => prev.filter(m => m.id !== id))
+  }, [])
+
+  const restoreMovie = useCallback(async (movie) => {
+    if (movies.some(m => m.id === movie.id)) return
+    const restored = await api.post('/movies', movie).catch(() => null)
+    if (restored) setMovies(prev => [restored, ...prev])
+  }, [movies])
+
+  const togglePriority = useCallback(async (id) => {
+    const movie = movies.find(m => m.id === id)
+    if (!movie) return
+    await updateMovie(id, { priority: !movie.priority })
+  }, [movies, updateMovie])
+
+  const markWatched = useCallback(async (id, date) => {
+    await updateMovie(id, {
       status: 'vista',
       watchedDate: date || new Date().toISOString().slice(0, 10),
     })
   }, [updateMovie])
 
-  const markPending = useCallback((id) => {
-    updateMovie(id, { status: 'pendiente', watchedDate: null })
+  const markPending = useCallback(async (id) => {
+    await updateMovie(id, { status: 'pendiente', watchedDate: null })
   }, [updateMovie])
 
   const exportData = useCallback(() => {
@@ -95,13 +95,13 @@ export function useMovies(userEmail) {
   const importData = useCallback((file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const parsed = JSON.parse(e.target.result)
           const raw = Array.isArray(parsed) ? parsed : (parsed.movies ?? [])
           if (!Array.isArray(raw)) throw new Error('Formato inválido')
           const list = raw
-            .filter(m => m && typeof m === 'object' && typeof m.title === 'string' && m.title.trim())
+            .filter(m => m && typeof m.title === 'string' && m.title.trim())
             .map(m => ({
               ...m,
               year: m.year != null ? (parseInt(m.year, 10) || null) : null,
@@ -110,8 +110,9 @@ export function useMovies(userEmail) {
               genres: Array.isArray(m.genres) ? m.genres.filter(g => typeof g === 'string') : [],
             }))
           if (list.length === 0) throw new Error('No se encontraron películas válidas')
-          persist(list)
-          resolve(list.length)
+          const results = await Promise.all(list.map(m => api.post('/movies', m)))
+          setMovies(prev => [...results, ...prev])
+          resolve(results.length)
         } catch (err) {
           reject(new Error(err.message || 'Archivo inválido'))
         }
@@ -119,26 +120,21 @@ export function useMovies(userEmail) {
       reader.onerror = () => reject(new Error('No se pudo leer el archivo'))
       reader.readAsText(file)
     })
-  }, [persist])
+  }, [])
 
   const stats = useMemo(() => {
-    const watched = movies.filter((m) => m.status === 'vista')
-    const pending = movies.filter((m) => m.status === 'pendiente')
-    const rated = watched.filter((m) => m.rating > 0)
+    const watched = movies.filter(m => m.status === 'vista')
+    const pending = movies.filter(m => m.status === 'pendiente')
+    const rated = watched.filter(m => m.rating > 0)
     const avgRating = rated.length
-      ? (rated.reduce((s, m) => s + m.rating, 0) / rated.length).toFixed(1)
-      : 0
+      ? (rated.reduce((s, m) => s + m.rating, 0) / rated.length).toFixed(1) : 0
     const totalMinutes = watched.reduce((s, m) => s + (m.runtime || 0), 0)
 
     const genreCount = {}
-    watched.forEach((m) => {
-      ;(m.genres || []).forEach((g) => { genreCount[g] = (genreCount[g] || 0) + 1 })
-    })
+    watched.forEach(m => (m.genres || []).forEach(g => { genreCount[g] = (genreCount[g] || 0) + 1 }))
 
     const directorCount = {}
-    watched.forEach((m) => {
-      if (m.director) directorCount[m.director] = (directorCount[m.director] || 0) + 1
-    })
+    watched.forEach(m => { if (m.director) directorCount[m.director] = (directorCount[m.director] || 0) + 1 })
 
     const monthlyCount = {}
     const now = new Date()
@@ -147,19 +143,12 @@ export function useMovies(userEmail) {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       monthlyCount[key] = 0
     }
-    watched.forEach((m) => {
+    watched.forEach(m => {
       if (m.watchedDate) {
-        const key = m.watchedDate.slice(0, 7)
+        const key = String(m.watchedDate).slice(0, 7)
         if (key in monthlyCount) monthlyCount[key]++
       }
     })
-
-    const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 6)
-    const topDirectors = Object.entries(directorCount).sort((a, b) => b[1] - a[1]).slice(0, 5)
-    const topRated = [...watched]
-      .filter((m) => m.rating > 0)
-      .sort((a, b) => b.rating - a.rating || new Date(b.watchedDate) - new Date(a.watchedDate))
-      .slice(0, 5)
 
     return {
       total: movies.length,
@@ -167,38 +156,29 @@ export function useMovies(userEmail) {
       pending: pending.length,
       avgRating: Number(avgRating),
       totalMinutes,
-      topGenres,
-      topDirectors,
+      topGenres: Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 6),
+      topDirectors: Object.entries(directorCount).sort((a, b) => b[1] - a[1]).slice(0, 5),
+      topRated: [...watched].filter(m => m.rating > 0)
+        .sort((a, b) => b.rating - a.rating).slice(0, 5),
       monthlyCount,
-      topRated,
     }
   }, [movies])
 
   const uniqueGenres = useMemo(() => {
     const set = new Set()
-    movies.forEach((m) => (m.genres || []).forEach((g) => set.add(g)))
+    movies.forEach(m => (m.genres || []).forEach(g => set.add(g)))
     return [...set].sort()
   }, [movies])
 
   const uniqueDirectors = useMemo(() => {
     const set = new Set()
-    movies.forEach((m) => m.director && set.add(m.director))
+    movies.forEach(m => m.director && set.add(m.director))
     return [...set].sort()
   }, [movies])
 
   return {
-    movies,
-    addMovie,
-    updateMovie,
-    deleteMovie,
-    restoreMovie,
-    togglePriority,
-    markWatched,
-    markPending,
-    exportData,
-    importData,
-    stats,
-    uniqueGenres,
-    uniqueDirectors,
+    movies, loading, addMovie, updateMovie, deleteMovie,
+    restoreMovie, togglePriority, markWatched, markPending,
+    exportData, importData, stats, uniqueGenres, uniqueDirectors,
   }
 }
