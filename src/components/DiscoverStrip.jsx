@@ -5,13 +5,14 @@ import styles from './DiscoverStrip.module.css'
 export function DiscoverStrip({ onSelect, onExplore }) {
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchFailed, setFetchFailed] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [adding, setAdding] = useState(null)
 
   useEffect(() => {
     fetchTrending()
       .then(setMovies)
-      .catch(() => {})
+      .catch(() => setFetchFailed(true))
       .finally(() => setLoading(false))
   }, [])
 
@@ -28,7 +29,7 @@ export function DiscoverStrip({ onSelect, onExplore }) {
     }
   }
 
-  if (!loading && movies.length === 0) return null
+  if (!loading && (movies.length === 0 || fetchFailed)) return null
 
   return (
     <section className={styles.section}>

@@ -91,6 +91,8 @@ function mapDetails(r) {
     overview: r.overview || '',
     genres: (r.genres || []).map(g => g.name),
     director,
+    runtime: r.runtime || null,
+    tmdbRating: r.vote_average ? Math.round(r.vote_average * 10) / 10 : null,
   }
 }
 

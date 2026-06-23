@@ -81,7 +81,7 @@ export default function CineMain({ user, onLogout }) {
     n: openAdd,
     b: openSearch,
     s: openStats,
-    '/': () => document.querySelector('input[aria-label="Buscar películas"]')?.focus(),
+    '/': () => document.querySelector('[data-shortcut="filter"]')?.focus(),
     escape: close,
   })
 

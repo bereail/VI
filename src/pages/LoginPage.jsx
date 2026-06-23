@@ -22,6 +22,7 @@ export function LoginPage({ onLogin, onRegister, onReset }) {
 
     const norm = email.trim().toLowerCase()
     if (!norm) { setError('Ingresá tu email.'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(norm)) { setError('Ingresá un email válido.'); return }
 
     if (view === VIEWS.register) {
       if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres.'); return }

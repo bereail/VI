@@ -110,14 +110,16 @@ describe('MovieCard', () => {
     expect(onMarkPending).toHaveBeenCalledWith('1')
   })
 
-  it('calls onMarkWatched for pending movie', () => {
+  it('opens date picker when mark-as-watched clicked', () => {
     const onMarkWatched = vi.fn()
     const { container } = render(
       <MovieCard movie={{ ...mockMovie, status: 'pendiente' }} onEdit={noop} onDelete={noop} onMarkWatched={onMarkWatched} onMarkPending={noop} onRate={noop} />
     )
     fireEvent.click(container.querySelector('[role="button"]'))
     fireEvent.click(screen.getByLabelText('Marcar como vista'))
-    expect(onMarkWatched).toHaveBeenCalledWith('1', null)
+    // Clicking the button opens the date picker; confirm triggers onMarkWatched
+    fireEvent.click(screen.getByLabelText('Confirmar fecha'))
+    expect(onMarkWatched).toHaveBeenCalledWith('1', expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/))
   })
 
   it('shows director in back', () => {

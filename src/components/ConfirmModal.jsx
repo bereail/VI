@@ -1,6 +1,13 @@
+import { useEffect } from 'react'
 import styles from './ConfirmModal.module.css'
 
 export function ConfirmModal({ message, confirmLabel = 'Aceptar', cancelLabel = 'Cancelar', onConfirm, onCancel }) {
+  useEffect(() => {
+    const handler = (e) => e.key === 'Escape' && onCancel()
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onCancel])
+
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <div className={styles.panel} onClick={e => e.stopPropagation()}>

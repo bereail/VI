@@ -20,6 +20,8 @@ const SORT_OPTIONS = [
   { key: 'priority', label: 'Prioridad' },
 ]
 
+const VIEW_KEY = 'vi_view'
+
 function getParam(key, fallback = '') {
   return new URLSearchParams(window.location.search).get(key) ?? fallback
 }
@@ -55,7 +57,7 @@ export function LibraryPage({
   const [minRating, setMinRating] = useState(() => Number(getParam('rating')) || 0)
   const [sort, setSort] = useState('recent')
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [view, setView] = useState(() => localStorage.getItem('vi_view') || 'grid')
+  const [view, setView] = useState(() => localStorage.getItem(VIEW_KEY) || 'grid')
   const importRef = useRef(null)
 
   const debouncedSearch = useDebounce(search, 200)
@@ -74,7 +76,7 @@ export function LibraryPage({
 
   const setViewAndPersist = useCallback((v) => {
     setView(v)
-    localStorage.setItem('vi_view', v)
+    localStorage.setItem(VIEW_KEY, v)
   }, [])
 
   const uniqueDecades = useMemo(() => {
@@ -201,6 +203,7 @@ export function LibraryPage({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por título, director, género..."
             aria-label="Buscar películas"
+            data-shortcut="filter"
           />
           {search && (
             <button className="btn btn-ghost" onClick={() => setSearch('')} aria-label="Limpiar" style={{ padding: '4px 8px' }}>✕</button>
@@ -309,7 +312,17 @@ export function LibraryPage({
       <DiscoverStrip onSelect={onAddFromDiscover} onExplore={onSearchTmdb} />
 
       <main className={styles.main}>
-        {filtered.length === 0 && movies.length > 0 ? (
+        {movies.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🎬</div>
+            <h2>Tu biblioteca está vacía</h2>
+            <p>Buscá una película en TMDB o agregá una manualmente para empezar.</p>
+            <div className={styles.emptyActions}>
+              <button className="btn btn-primary" onClick={onSearchTmdb}>🔍 Buscar en TMDB</button>
+              <button className="btn btn-secondary" onClick={onAdd}>+ Agregar manual</button>
+            </div>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <p>Sin resultados para esa búsqueda</p>
             <button className="btn btn-secondary" onClick={clearFilters}>Limpiar filtros</button>

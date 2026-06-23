@@ -35,6 +35,7 @@ export function SearchModal({ onSelect, onClose }) {
   const [personLoading, setPersonLoading] = useState(false)
   const [discoverResults, setDiscoverResults] = useState([])
   const [discoverLoading, setDiscoverLoading] = useState(false)
+  const [discoverError, setDiscoverError] = useState(false)
   const [discoverPage, setDiscoverPage] = useState(1)
   const [discoverTotalPages, setDiscoverTotalPages] = useState(1)
 
@@ -62,6 +63,7 @@ export function SearchModal({ onSelect, onClose }) {
   const loadDiscover = useCallback(async (currentTab, currentGenreId, currentPerson, page, append) => {
     const id = ++loadIdRef.current
     setDiscoverLoading(true)
+    setDiscoverError(false)
     try {
       let movieResults, totalPages = 1, resultPage = 1
 
@@ -86,7 +88,10 @@ export function SearchModal({ onSelect, onClose }) {
       setDiscoverTotalPages(totalPages)
       setDiscoverPage(resultPage)
     } catch {
-      if (id === loadIdRef.current && !append) setDiscoverResults([])
+      if (id === loadIdRef.current && !append) {
+        setDiscoverResults([])
+        setDiscoverError(true)
+      }
     } finally {
       if (id === loadIdRef.current) setDiscoverLoading(false)
     }
@@ -260,9 +265,14 @@ export function SearchModal({ onSelect, onClose }) {
           )}
         </div>
 
-        {/* Error */}
+        {/* Error búsqueda */}
         {error && !isDiscover && (
           <div className={styles.error}><span>⚠️</span> {error}</div>
+        )}
+
+        {/* Error discover */}
+        {discoverError && isDiscover && (
+          <div className={styles.error}><span>⚠️</span> No se pudieron cargar las películas. Revisá tu conexión.</div>
         )}
 
         {/* Spinner inicial */}
