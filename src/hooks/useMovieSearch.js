@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 
 const BASE = 'https://api.themoviedb.org/3'
 export const IMG_BASE = 'https://image.tmdb.org/t/p'
@@ -202,6 +202,13 @@ export function useMovieSearch() {
     setResults([])
     setLoading(false)
     setError(null)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(timerRef.current)
+      if (abortRef.current) abortRef.current.abort()
+    }
   }, [])
 
   return { results, loading, error, search, getDetails, clear }

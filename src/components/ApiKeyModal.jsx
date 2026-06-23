@@ -1,10 +1,16 @@
-import { useState } from 'react'
-import { saveApiKey, removeApiKey } from '../hooks/useMovieSearch'
+import { useState, useEffect } from 'react'
+import { saveApiKey } from '../hooks/useMovieSearch'
 import styles from './ApiKeyModal.module.css'
 
 export function ApiKeyModal({ onClose }) {
   const [key, setKey] = useState('')
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const handler = (e) => e.key === 'Escape' && onClose(false)
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
 
   const handleSave = (e) => {
     e.preventDefault()

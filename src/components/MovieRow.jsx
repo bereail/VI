@@ -58,10 +58,10 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
             {priority ? '★' : '☆'}
           </button>
         )}
-        <button className={styles.iconBtn} onClick={() => onEdit(movie)} title="Editar">✏️</button>
+        <button className={styles.iconBtn} onClick={() => onEdit(movie)} title="Editar" aria-label="Editar">✏️</button>
         {isWatched
           ? (
-            <button className={styles.iconBtn} onClick={() => onMarkPending(id)} title="Mover a pendientes">
+            <button className={styles.iconBtn} onClick={() => onMarkPending(id)} title="Mover a pendientes" aria-label="Mover a pendientes">
               ◷
             </button>
           )
@@ -70,6 +70,7 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
               className={`${styles.iconBtn} ${styles.watchedBtn}`}
               onClick={() => onMarkWatched(id, new Date().toISOString().slice(0, 10))}
               title="Marcar como vista (hoy)"
+              aria-label="Marcar como vista"
             >
               ✓
             </button>
@@ -79,6 +80,7 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
           className={`${styles.iconBtn} ${styles.deleteBtn}`}
           onClick={() => onDelete(id)}
           title="Eliminar"
+          aria-label="Eliminar"
         >
           🗑
         </button>

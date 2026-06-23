@@ -8,7 +8,8 @@ function load(email) {
   try {
     const raw = localStorage.getItem(storageKey(email))
     return raw ? JSON.parse(raw) : []
-  } catch {
+  } catch (err) {
+    console.warn('[useMovies] No se pudo leer datos guardados:', err)
     return []
   }
 }
@@ -99,7 +100,15 @@ export function useMovies(userEmail) {
           const parsed = JSON.parse(e.target.result)
           const raw = Array.isArray(parsed) ? parsed : (parsed.movies ?? [])
           if (!Array.isArray(raw)) throw new Error('Formato inválido')
-          const list = raw.filter(m => m && typeof m === 'object' && typeof m.title === 'string' && m.title.trim())
+          const list = raw
+            .filter(m => m && typeof m === 'object' && typeof m.title === 'string' && m.title.trim())
+            .map(m => ({
+              ...m,
+              year: m.year != null ? (parseInt(m.year, 10) || null) : null,
+              rating: typeof m.rating === 'number' ? Math.max(0, Math.min(5, Math.round(m.rating))) : 0,
+              status: m.status === 'vista' || m.status === 'pendiente' ? m.status : 'pendiente',
+              genres: Array.isArray(m.genres) ? m.genres.filter(g => typeof g === 'string') : [],
+            }))
           if (list.length === 0) throw new Error('No se encontraron películas válidas')
           persist(list)
           resolve(list.length)

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import styles from './StatsModal.module.css'
 import { StarRating } from './StarRating'
 
@@ -28,11 +29,14 @@ const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'S
 export function StatsModal({ stats, onClose }) {
   const { watched, pending, total, avgRating, totalMinutes, topGenres, topDirectors, monthlyCount, topRated } = stats
 
-  const maxGenre = topGenres.length ? Math.max(...topGenres.map((g) => g[1])) : 1
-  const maxDir = topDirectors.length ? Math.max(...topDirectors.map((d) => d[1])) : 1
-  const maxMonth = Object.values(monthlyCount).length ? Math.max(...Object.values(monthlyCount), 1) : 1
+  const maxGenre = useMemo(() => topGenres.length ? Math.max(...topGenres.map((g) => g[1])) : 1, [topGenres])
+  const maxDir = useMemo(() => topDirectors.length ? Math.max(...topDirectors.map((d) => d[1])) : 1, [topDirectors])
+  const maxMonth = useMemo(() => {
+    const vals = Object.values(monthlyCount)
+    return vals.length ? Math.max(...vals, 1) : 1
+  }, [monthlyCount])
 
-  const monthEntries = Object.entries(monthlyCount)
+  const monthEntries = useMemo(() => Object.entries(monthlyCount), [monthlyCount])
 
   return (
     <div className="modal-backdrop" onClick={onClose}>

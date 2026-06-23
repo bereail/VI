@@ -22,6 +22,7 @@ function ToastItem({ toast, onRemove }) {
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
   const timers = useRef({})
+  const counter = useRef(0)
 
   const remove = useCallback((id) => {
     setToasts(prev => prev.filter(t => t.id !== id))
@@ -30,7 +31,7 @@ export function ToastProvider({ children }) {
   }, [])
 
   const toast = useCallback(({ message, type = 'info', action, actionLabel, duration = 4000 }) => {
-    const id = Date.now() + Math.random()
+    const id = ++counter.current
     setToasts(prev => [...prev, { id, message, type, action, actionLabel }])
     timers.current[id] = setTimeout(() => remove(id), duration)
     return id
