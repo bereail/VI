@@ -1,10 +1,63 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useAuth } from '../hooks/useAuth'
+
+const TOKEN_KEY = 'vi_token'
+
+const mockUsers = {}
+
+function mockToken(email) {
+  const payload = btoa(JSON.stringify({ email }))
+  return `mock.${payload}.sig`
+}
+
+function makeFetch() {
+  return vi.fn((url, opts = {}) => {
+    const method = opts.method || 'GET'
+    const path = String(url).replace('/vi-api', '')
+    const body = opts.body ? JSON.parse(opts.body) : {}
+
+    if (method === 'POST' && path === '/auth/register') {
+      const email = body.email?.toLowerCase()
+      if (mockUsers[email]) {
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Ya existe una cuenta con ese email.' }) })
+      }
+      mockUsers[email] = { email, password: body.password }
+      const token = mockToken(email)
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ token, email }) })
+    }
+
+    if (method === 'POST' && path === '/auth/login') {
+      const email = body.email?.toLowerCase()
+      const user = mockUsers[email]
+      if (!user) {
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'No existe una cuenta con ese email.' }) })
+      }
+      if (user.password !== body.password) {
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Contraseña incorrecta.' }) })
+      }
+      const token = mockToken(email)
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ token, email }) })
+    }
+
+    if (method === 'POST' && path === '/auth/reset-password') {
+      const email = body.email?.toLowerCase()
+      if (!mockUsers[email]) {
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'No existe una cuenta con ese email.' }) })
+      }
+      mockUsers[email].password = body.password
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true }) })
+    }
+
+    return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Not found' }) })
+  })
+}
 
 beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
+  Object.keys(mockUsers).forEach(k => delete mockUsers[k])
+  global.fetch = makeFetch()
 })
 
 describe('useAuth - register', () => {
@@ -33,19 +86,10 @@ describe('useAuth - register', () => {
     ).rejects.toThrow('Ya existe una cuenta')
   })
 
-  it('persists user to localStorage', async () => {
+  it('stores token in localStorage', async () => {
     const { result } = renderHook(() => useAuth())
     await act(async () => { await result.current.register('x@y.com', 'pass123') })
-    const stored = JSON.parse(localStorage.getItem('vi_users'))
-    expect(stored['x@y.com']).toBeDefined()
-    expect(stored['x@y.com'].passwordHash).toBeTruthy()
-  })
-
-  it('stores session in sessionStorage', async () => {
-    const { result } = renderHook(() => useAuth())
-    await act(async () => { await result.current.register('s@s.com', 'pass123') })
-    const session = JSON.parse(sessionStorage.getItem('vi_session'))
-    expect(session.email).toBe('s@s.com')
+    expect(localStorage.getItem(TOKEN_KEY)).toBeTruthy()
   })
 })
 
@@ -85,12 +129,12 @@ describe('useAuth - login', () => {
 })
 
 describe('useAuth - logout', () => {
-  it('clears user and session', async () => {
+  it('clears user and token', async () => {
     const { result } = renderHook(() => useAuth())
     await act(async () => { await result.current.register('lo@lo.com', 'pass') })
     act(() => { result.current.logout() })
     expect(result.current.user).toBeNull()
-    expect(sessionStorage.getItem('vi_session')).toBeNull()
+    expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
   })
 })
 
@@ -123,13 +167,15 @@ describe('useAuth - resetPassword', () => {
 })
 
 describe('useAuth - session persistence', () => {
-  it('restores user from sessionStorage on mount', async () => {
-    sessionStorage.setItem('vi_session', JSON.stringify({ email: 'persisted@x.com' }))
+  it('restores user from token in localStorage on mount', () => {
+    const email = 'persisted@x.com'
+    const token = mockToken(email)
+    localStorage.setItem(TOKEN_KEY, token)
     const { result } = renderHook(() => useAuth())
-    expect(result.current.user?.email).toBe('persisted@x.com')
+    expect(result.current.user?.email).toBe(email)
   })
 
-  it('starts with null user when no session', () => {
+  it('starts with null user when no token', () => {
     const { result } = renderHook(() => useAuth())
     expect(result.current.user).toBeNull()
   })

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { api } from '../api'
 
 const MIGRATED_KEY = 'vi_migrated_v2'
@@ -18,9 +18,19 @@ async function migrateLocalStorage(email) {
   localStorage.setItem(MIGRATED_KEY, '1')
 }
 
+export function checkBackupReminder() {
+  const last = localStorage.getItem('vi_last_backup')
+  if (!last) return true
+  const daysSince = (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24)
+  return daysSince > 7
+}
+
 export function useMovies(userEmail) {
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
+  const moviesRef = useRef(movies)
+
+  useEffect(() => { moviesRef.current = movies }, [movies])
 
   useEffect(() => {
     if (!userEmail) return
@@ -90,6 +100,7 @@ export function useMovies(userEmail) {
     a.download = `vi_${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
+    localStorage.setItem('vi_last_backup', new Date().toISOString())
   }, [movies])
 
   const importData = useCallback((file) => {
@@ -110,9 +121,22 @@ export function useMovies(userEmail) {
               genres: Array.isArray(m.genres) ? m.genres.filter(g => typeof g === 'string') : [],
             }))
           if (list.length === 0) throw new Error('No se encontraron películas válidas')
-          const results = await Promise.all(list.map(m => api.post('/movies', m)))
+
+          const current = moviesRef.current
+          const toImport = list.filter(m => {
+            if (m.tmdbId && current.some(c => c.tmdbId === m.tmdbId)) return false
+            if (current.some(c =>
+              c.title?.toLowerCase() === m.title?.toLowerCase() && c.year === m.year
+            )) return false
+            return true
+          })
+          const skipped = list.length - toImport.length
+
+          if (toImport.length === 0) throw new Error('Todas las películas ya existen en tu biblioteca')
+
+          const results = await Promise.all(toImport.map(m => api.post('/movies', m)))
           setMovies(prev => [...results, ...prev])
-          resolve(results.length)
+          resolve({ imported: results.length, skipped })
         } catch (err) {
           reject(new Error(err.message || 'Archivo inválido'))
         }

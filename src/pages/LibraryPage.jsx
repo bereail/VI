@@ -20,7 +20,15 @@ const SORT_OPTIONS = [
   { key: 'priority', label: 'Prioridad' },
 ]
 
+const SHORTCUTS = [
+  { key: 'N', label: 'nueva' },
+  { key: 'B', label: 'buscar TMDB' },
+  { key: 'S', label: 'stats' },
+  { key: '/', label: 'buscar' },
+]
+
 const VIEW_KEY = 'vi_view'
+const SORT_KEY = 'vi_sort'
 
 function getParam(key, fallback = '') {
   return new URLSearchParams(window.location.search).get(key) ?? fallback
@@ -56,10 +64,12 @@ export function LibraryPage({
   const [director, setDirector] = useState(() => getParam('director'))
   const [decade, setDecade] = useState(() => getParam('decade'))
   const [minRating, setMinRating] = useState(() => Number(getParam('rating')) || 0)
-  const [sort, setSort] = useState('recent')
+  const [sort, setSort] = useState(() => localStorage.getItem(SORT_KEY) || 'recent')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [view, setView] = useState(() => localStorage.getItem(VIEW_KEY) || 'grid')
+  const [menuOpen, setMenuOpen] = useState(false)
   const importRef = useRef(null)
+  const menuRef = useRef(null)
 
   const debouncedSearch = useDebounce(search, 200)
 
@@ -75,9 +85,23 @@ export function LibraryPage({
     window.history.replaceState(null, '', str ? `?${str}` : window.location.pathname)
   }, [status, genre, director, decade, minRating, search])
 
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
+
   const setViewAndPersist = useCallback((v) => {
     setView(v)
     localStorage.setItem(VIEW_KEY, v)
+  }, [])
+
+  const setSortAndPersist = useCallback((v) => {
+    setSort(v)
+    localStorage.setItem(SORT_KEY, v)
   }, [])
 
   const uniqueDecades = useMemo(() => {
@@ -108,7 +132,8 @@ export function LibraryPage({
           m.originalTitle?.toLowerCase().includes(q) ||
           m.director?.toLowerCase().includes(q) ||
           (m.genres || []).some((g) => g.toLowerCase().includes(q)) ||
-          m.notes?.toLowerCase().includes(q)
+          m.notes?.toLowerCase().includes(q) ||
+          String(m.year ?? '').includes(q)
       )
     }
 
@@ -154,6 +179,8 @@ export function LibraryPage({
     setStatus('all')
   }, [])
 
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+
   return (
     <div className={styles.page}>
       {/* Header */}
@@ -169,30 +196,63 @@ export function LibraryPage({
             <span className={styles.counter}>{stats.pending} pendientes</span>
           </div>
         </div>
+
         <div className={styles.headerRight}>
-          <span className={styles.userEmail} title={user?.email}>{user?.email}</span>
-          <button className="btn btn-ghost" onClick={onStats} aria-label="Estadísticas">📊</button>
-          <button className="btn btn-ghost" onClick={onApiKey} title="Configurar TMDB API key" aria-label="API key">⚙️</button>
-          <button className="btn btn-ghost" onClick={onToggleTheme} aria-label="Cambiar tema">
+          {/* Desktop */}
+          <span className={`${styles.userEmail} ${styles.desktopOnly}`} title={user?.email}>{user?.email}</span>
+          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onStats} aria-label="Estadísticas">📊</button>
+          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onApiKey} title="Configurar TMDB API key" aria-label="API key">⚙️</button>
+          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onToggleTheme} aria-label="Cambiar tema">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
           {onOpenAdmin && (
-            <button className="btn btn-ghost" onClick={onOpenAdmin} aria-label="Panel admin" title="Panel admin">👥</button>
+            <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onOpenAdmin} aria-label="Panel admin" title="Panel admin">👥</button>
           )}
-          <button className="btn btn-ghost" onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">↩</button>
-          <div className={styles.headerMenu}>
+          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">↩</button>
+          <div className={`${styles.headerMenu} ${styles.desktopOnly}`}>
             <button className="btn btn-ghost" onClick={onExport} title="Exportar" aria-label="Exportar">⬆️</button>
             <button className="btn btn-ghost" onClick={handleImportClick} title="Importar" aria-label="Importar">⬇️</button>
-            <input
-              ref={importRef}
-              type="file"
-              accept=".json"
-              onChange={handleImportChange}
-              className="sr-only"
-              aria-hidden
-            />
           </div>
-          <button className="btn btn-ghost" onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">🔍 TMDB</button>
+          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">🔍 TMDB</button>
+
+          {/* Mobile dropdown */}
+          <div className={`${styles.mobileMenuWrap} ${styles.mobileOnly}`} ref={menuRef}>
+            <button
+              className="btn btn-ghost"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label="Más opciones"
+              aria-expanded={menuOpen}
+            >
+              ⋮
+            </button>
+            {menuOpen && (
+              <div className={styles.mobileDropdown}>
+                <span className={styles.dropdownEmail}>{user?.email}</span>
+                <button className="btn btn-ghost" onClick={() => { onStats(); closeMenu() }}>📊 Estadísticas</button>
+                <button className="btn btn-ghost" onClick={() => { onSearchTmdb(); closeMenu() }}>🔍 Buscar TMDB</button>
+                <button className="btn btn-ghost" onClick={() => { onApiKey(); closeMenu() }}>⚙️ API key</button>
+                <button className="btn btn-ghost" onClick={() => { onToggleTheme(); closeMenu() }}>
+                  {theme === 'dark' ? '☀️' : '🌙'} Tema
+                </button>
+                {onOpenAdmin && (
+                  <button className="btn btn-ghost" onClick={() => { onOpenAdmin(); closeMenu() }}>👥 Admin</button>
+                )}
+                <button className="btn btn-ghost" onClick={() => { onExport(); closeMenu() }}>⬆️ Exportar</button>
+                <button className="btn btn-ghost" onClick={() => { handleImportClick(); closeMenu() }}>⬇️ Importar</button>
+                <button className="btn btn-ghost" onClick={() => { onLogout(); closeMenu() }}>↩ Cerrar sesión</button>
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={importRef}
+            type="file"
+            accept=".json"
+            onChange={handleImportChange}
+            className="sr-only"
+            aria-hidden
+          />
+
           <button className="btn btn-primary" onClick={onAdd} aria-label="Agregar película (N)">+ Agregar</button>
         </div>
       </header>
@@ -205,7 +265,7 @@ export function LibraryPage({
             className={styles.searchInput}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por título, director, género..."
+            placeholder="Buscar por título, director, género, año..."
             aria-label="Buscar películas"
             data-shortcut="filter"
           />
@@ -235,7 +295,7 @@ export function LibraryPage({
             <select
               className={styles.sortSelect}
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              onChange={(e) => setSortAndPersist(e.target.value)}
               aria-label="Ordenar por"
             >
               {SORT_OPTIONS.map((o) => (
@@ -319,8 +379,8 @@ export function LibraryPage({
         {movies.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>🎬</div>
-            <h2>Tu biblioteca está vacía</h2>
-            <p>Buscá una película en TMDB o agregá una manualmente para empezar.</p>
+            <h2>Empezá tu filmoteka</h2>
+            <p>Agregá películas manualmente o buscalas en TMDB.</p>
             <div className={styles.emptyActions}>
               <button className="btn btn-primary" onClick={onSearchTmdb}>🔍 Buscar en TMDB</button>
               <button className="btn btn-secondary" onClick={onAdd}>+ Agregar manual</button>
@@ -365,10 +425,9 @@ export function LibraryPage({
       </main>
 
       <div className={styles.shortcuts}>
-        <span><kbd>N</kbd> nueva</span>
-        <span><kbd>B</kbd> buscar TMDB</span>
-        <span><kbd>S</kbd> stats</span>
-        <span><kbd>/</kbd> filtrar</span>
+        {SHORTCUTS.map(({ key, label }) => (
+          <span key={key}><kbd>{key}</kbd> {label}</span>
+        ))}
       </div>
     </div>
   )

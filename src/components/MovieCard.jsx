@@ -46,7 +46,7 @@ export function MovieCard({ movie, onEdit, onDelete, onMarkWatched, onMarkPendin
       role="button"
       tabIndex={0}
       aria-label={`${title} — clic para ver detalles`}
-      onKeyDown={(e) => e.key === 'Enter' && flip()}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && flip()}
     >
       <div className={`${styles.card} ${flipped ? styles.flipped : ''}`}>
         {/* FRONT */}

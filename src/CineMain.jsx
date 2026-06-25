@@ -1,11 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { LibraryPage } from './pages/LibraryPage'
 import { MovieModal } from './components/MovieModal'
 import { SearchModal } from './components/SearchModal'
 import { StatsModal } from './components/StatsModal'
 import { ApiKeyModal } from './components/ApiKeyModal'
-import { ConfirmModal } from './components/ConfirmModal'
-import { useMovies } from './hooks/useMovies'
+import { useMovies, checkBackupReminder } from './hooks/useMovies'
 import { useTheme } from './hooks/useTheme'
 import { useKeyboard } from './hooks/useKeyboard'
 import { useToast } from './hooks/useToast'
@@ -17,7 +16,7 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
   const toast = useToast()
 
   const [modal, setModal] = useState(null)
-  const [pendingImport, setPendingImport] = useState(null)
+  const backupReminderShown = useRef(false)
 
   const close = useCallback(() => setModal(null), [])
   const openAdd = useCallback(() => setModal({ type: 'add' }), [])
@@ -28,6 +27,19 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
   const openSearch = useCallback(() => {
     setModal(hasApiKey() ? { type: 'search' } : { type: 'apikey', next: 'search' })
   }, [])
+
+  useEffect(() => {
+    if (backupReminderShown.current || movies.length === 0) return
+    backupReminderShown.current = true
+    if (checkBackupReminder()) {
+      toast({
+        message: 'Hacé un backup de tu filmoteka',
+        actionLabel: 'Exportar',
+        action: exportData,
+        duration: 8000,
+      })
+    }
+  }, [movies.length, exportData, toast])
 
   const handleSave = useCallback(async (formData) => {
     try {
@@ -63,23 +75,17 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
     else close()
   }, [modal, close])
 
-  const executeImport = useCallback(async (file) => {
-    setPendingImport(null)
+  const handleImport = useCallback(async (file) => {
     try {
-      const count = await importData(file)
-      toast({ message: `Se importaron ${count} películas`, type: 'success' })
+      const { imported, skipped } = await importData(file)
+      const msg = skipped > 0
+        ? `${imported} película${imported !== 1 ? 's' : ''} importada${imported !== 1 ? 's' : ''}, ${skipped} ya existían`
+        : `${imported} película${imported !== 1 ? 's' : ''} importada${imported !== 1 ? 's' : ''}`
+      toast({ message: msg, type: 'success' })
     } catch (e) {
       toast({ message: 'Error al importar: ' + e.message, type: 'error' })
     }
   }, [importData, toast])
-
-  const handleImport = useCallback((file) => {
-    if (movies.length > 0) {
-      setPendingImport(file)
-    } else {
-      executeImport(file)
-    }
-  }, [movies, executeImport])
 
   useKeyboard({
     n: openAdd,
@@ -134,16 +140,6 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
 
       {modal?.type === 'apikey' && (
         <ApiKeyModal onClose={handleApiKeyClose} />
-      )}
-
-      {pendingImport && (
-        <ConfirmModal
-          message={`Tenés ${movies.length} película${movies.length !== 1 ? 's' : ''} guardadas. Importar agregará las nuevas al listado.`}
-          confirmLabel="Importar"
-          cancelLabel="Cancelar"
-          onConfirm={() => executeImport(pendingImport)}
-          onCancel={() => setPendingImport(null)}
-        />
       )}
     </>
   )

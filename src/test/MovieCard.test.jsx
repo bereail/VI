@@ -80,6 +80,13 @@ describe('MovieCard', () => {
     expect(container.querySelector('[class*="flipped"]')).toBeTruthy()
   })
 
+  it('flips card on Space key', () => {
+    const { container } = renderCard()
+    const wrapper = container.querySelector('[role="button"]')
+    fireEvent.keyDown(wrapper, { key: ' ' })
+    expect(container.querySelector('[class*="flipped"]')).toBeTruthy()
+  })
+
   it('calls onEdit when edit button clicked', () => {
     const onEdit = vi.fn()
     const { container } = render(

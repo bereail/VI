@@ -6,7 +6,7 @@ export function DiscoverStrip({ onSelect, onExplore }) {
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [fetchFailed, setFetchFailed] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('vi_discover_collapsed') === '1')
   const [adding, setAdding] = useState(null)
 
   useEffect(() => {
@@ -44,7 +44,11 @@ export function DiscoverStrip({ onSelect, onExplore }) {
           </button>
           <button
             className="btn btn-ghost"
-            onClick={() => setCollapsed(c => !c)}
+            onClick={() => setCollapsed(c => {
+              const next = !c
+              localStorage.setItem('vi_discover_collapsed', next ? '1' : '0')
+              return next
+            })}
             aria-label={collapsed ? 'Mostrar' : 'Ocultar'}
           >
             {collapsed ? '▼' : '▲'}
