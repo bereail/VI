@@ -6,10 +6,11 @@ import {
   searchPerson,
   getTmdbGenres,
 } from '../hooks/useMovieSearch'
+import { Icon } from './Icon'
 import styles from './SearchModal.module.css'
 
 const TABS = [
-  { key: 'trending', label: '🔥 Tendencias' },
+  { key: 'trending', label: 'Tendencias' },
   { key: 'popular', label: 'Popular' },
   { key: 'top_rated', label: 'Mejor puntaje' },
   { key: 'now_playing', label: 'En cines' },
@@ -25,7 +26,6 @@ export function SearchModal({ onSelect, onClose }) {
   const [query, setQuery] = useState('')
   const [loading2, setLoading2] = useState(false)
 
-  // Discover state
   const [tab, setTab] = useState('trending')
   const [genres, setGenres] = useState([])
   const [genreId, setGenreId] = useState('')
@@ -178,9 +178,8 @@ export function SearchModal({ onSelect, onClose }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className={`modal-panel ${styles.panel}`} onClick={(e) => e.stopPropagation()}>
 
-        {/* Barra de búsqueda */}
         <div className={styles.searchBar}>
-          <span className={styles.icon}>🔍</span>
+          <Icon name="search" size={18} className={styles.searchIcon} />
           <input
             ref={inputRef}
             value={query}
@@ -188,13 +187,14 @@ export function SearchModal({ onSelect, onClose }) {
             placeholder="Buscar por título..."
             className={styles.input}
           />
-          {query && (
-            <button className="btn btn-ghost" onClick={handleClearQuery} aria-label="Limpiar">✕</button>
-          )}
-          <button className="btn btn-ghost" onClick={onClose} aria-label="Cerrar">Esc</button>
+          {query ? (
+            <button className="btn btn-ghost" onClick={handleClearQuery} aria-label="Limpiar" style={{ padding: '6px' }}>
+              <Icon name="close" size={16} />
+            </button>
+          ) : null}
+          <button className={`btn btn-ghost ${styles.escBtn}`} onClick={onClose} aria-label="Cerrar">Esc</button>
         </div>
 
-        {/* Tabs de descubrimiento */}
         {isDiscover && (
           <div className={styles.tabs}>
             {TABS.map(t => (
@@ -209,7 +209,6 @@ export function SearchModal({ onSelect, onClose }) {
           </div>
         )}
 
-        {/* Filtros */}
         <div className={styles.filters}>
           <select
             value={genreId}
@@ -231,7 +230,9 @@ export function SearchModal({ onSelect, onClose }) {
                   <span className={styles.personRole}>
                     {person.role === 'director' ? 'Director/a' : 'Actor/Actriz'}
                   </span>
-                  <button className={styles.chipClose} onClick={handleClearPerson} aria-label="Quitar">✕</button>
+                  <button className={styles.chipClose} onClick={handleClearPerson} aria-label="Quitar">
+                    <Icon name="close" size={11} />
+                  </button>
                 </div>
               ) : (
                 <div className={styles.personInputWrap}>
@@ -265,17 +266,14 @@ export function SearchModal({ onSelect, onClose }) {
           )}
         </div>
 
-        {/* Error búsqueda */}
         {error && !isDiscover && (
-          <div className={styles.error}><span>⚠️</span> {error}</div>
+          <div className={styles.errorMsg}>{error}</div>
         )}
 
-        {/* Error discover */}
         {discoverError && isDiscover && (
-          <div className={styles.error}><span>⚠️</span> No se pudieron cargar las películas. Revisá tu conexión.</div>
+          <div className={styles.errorMsg}>No se pudieron cargar las películas. Revisá tu conexión.</div>
         )}
 
-        {/* Spinner inicial */}
         {isLoading && displayResults.length === 0 && (
           <div className={styles.loading}>
             <div className={styles.spinner} />
@@ -283,12 +281,10 @@ export function SearchModal({ onSelect, onClose }) {
           </div>
         )}
 
-        {/* Sin resultados de búsqueda */}
         {!isDiscover && !loading && !loading2 && results.length === 0 && query.length > 1 && !error && (
           <div className={styles.empty}>Sin resultados para "{query}"</div>
         )}
 
-        {/* Lista de resultados */}
         <div className={styles.results}>
           {displayResults.map((movie) => (
             <button
@@ -318,7 +314,7 @@ export function SearchModal({ onSelect, onClose }) {
                   <p className={styles.resultOverview}>{movie.overview}</p>
                 )}
               </div>
-              <span className={styles.resultArrow}>→</span>
+              <Icon name="arrowRight" size={16} className={styles.resultArrow} />
             </button>
           ))}
 

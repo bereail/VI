@@ -1,4 +1,5 @@
 import { StarRating } from './StarRating'
+import { Icon } from './Icon'
 import styles from './MovieRow.module.css'
 
 function formatRuntime(min) {
@@ -35,11 +36,14 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
             ? <span className="badge badge-watched">✓ Vista</span>
             : <span className="badge badge-pending">◷ Pendiente</span>
           }
+          {!isWatched && priority && (
+            <span className={styles.priorityDot} title="Alta prioridad">★</span>
+          )}
         </div>
         <div className={styles.meta}>
           {director && <span>{director}</span>}
           {runtime && <span>{formatRuntime(runtime)}</span>}
-          {genres.slice(0, 3).map(g => <span key={g} className="tag">{g}</span>)}
+          {genres.slice(0, 2).map(g => <span key={g} className="tag">{g}</span>)}
         </div>
       </div>
 
@@ -51,18 +55,20 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
         {!isWatched && (
           <button
             className={`${styles.iconBtn} ${priority ? styles.priorityActive : ''}`}
-            onClick={() => onTogglePriority(id)}
+            onClick={() => onTogglePriority?.(id)}
             title={priority ? 'Quitar prioridad' : 'Alta prioridad'}
             aria-label="Prioridad"
           >
-            {priority ? '★' : '☆'}
+            <Icon name="star" size={15} />
           </button>
         )}
-        <button className={styles.iconBtn} onClick={() => onEdit(movie)} title="Editar" aria-label="Editar">✏️</button>
+        <button className={styles.iconBtn} onClick={() => onEdit(movie)} title="Editar" aria-label="Editar">
+          <Icon name="edit" size={15} />
+        </button>
         {isWatched
           ? (
             <button className={styles.iconBtn} onClick={() => onMarkPending(id)} title="Mover a pendientes" aria-label="Mover a pendientes">
-              ◷
+              <Icon name="clock" size={15} />
             </button>
           )
           : (
@@ -72,7 +78,7 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
               title="Marcar como vista (hoy)"
               aria-label="Marcar como vista"
             >
-              ✓
+              <Icon name="check" size={15} />
             </button>
           )
         }
@@ -82,7 +88,7 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
           title="Eliminar"
           aria-label="Eliminar"
         >
-          🗑
+          <Icon name="trash" size={15} />
         </button>
       </div>
     </div>

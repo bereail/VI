@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import styles from './StatsModal.module.css'
 import { StarRating } from './StarRating'
+import { Icon } from './Icon'
 
 function Bar({ label, value, max, color = 'var(--accent)' }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
@@ -42,12 +43,13 @@ export function StatsModal({ stats, onClose }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-panel" style={{ maxWidth: 680 }} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>📊 Mis estadísticas</h2>
-          <button className="btn btn-ghost" onClick={onClose} aria-label="Cerrar">✕</button>
+          <h2 className={styles.title}>Estadísticas</h2>
+          <button className="btn btn-ghost" onClick={onClose} aria-label="Cerrar" style={{ padding: '6px' }}>
+            <Icon name="close" size={18} />
+          </button>
         </div>
 
         <div className={styles.body}>
-          {/* Summary cards */}
           <div className={styles.summaryGrid}>
             <div className={styles.summaryCard}>
               <span className={styles.summaryNum}>{watched}</span>
@@ -81,10 +83,9 @@ export function StatsModal({ stats, onClose }) {
             </div>
           )}
 
-          {/* Monthly chart */}
           {watched > 0 && monthEntries.length > 0 && (
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Películas por mes (últimos 12 meses)</h3>
+              <h3 className={styles.sectionTitle}>Películas por mes</h3>
               <div className={styles.monthChart}>
                 {monthEntries.map(([key, count]) => {
                   const month = parseInt(key.split('-')[1]) - 1
@@ -93,10 +94,7 @@ export function StatsModal({ stats, onClose }) {
                     <div key={key} className={styles.monthCol}>
                       <span className={styles.monthCount}>{count > 0 ? count : ''}</span>
                       <div className={styles.monthBar}>
-                        <div
-                          className={styles.monthFill}
-                          style={{ height: `${pct}%` }}
-                        />
+                        <div className={styles.monthFill} style={{ height: `${pct}%` }} />
                       </div>
                       <span className={styles.monthLabel}>{MONTH_LABELS[month]}</span>
                     </div>
@@ -106,7 +104,6 @@ export function StatsModal({ stats, onClose }) {
             </section>
           )}
 
-          {/* Top genres */}
           {topGenres.length > 0 && (
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Géneros favoritos</h3>
@@ -118,7 +115,6 @@ export function StatsModal({ stats, onClose }) {
             </section>
           )}
 
-          {/* Top directors */}
           {topDirectors.length > 0 && (
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Directores más vistos</h3>
@@ -130,7 +126,6 @@ export function StatsModal({ stats, onClose }) {
             </section>
           )}
 
-          {/* Top rated */}
           {topRated.length > 0 && (
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Mejor puntuadas</h3>

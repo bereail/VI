@@ -5,48 +5,43 @@
   justify-content: center;
   background: var(--bg-0);
   padding: 20px;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(232, 184, 109, 0.08) 0%, transparent 60%);
+  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232, 184, 109, 0.07) 0%, transparent 60%);
 }
 
 .card {
   width: 100%;
   max-width: 400px;
-  background: var(--bg-2);
+  background: var(--bg-1);
   border-radius: var(--radius-lg);
   padding: 40px 36px;
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--bg-3);
-  animation: scaleIn 0.25s ease;
+  animation: scaleIn 0.2s ease;
 }
 
 .logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.logoIcon {
-  font-size: 28px;
+  margin-bottom: 4px;
 }
 
 .logoText {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: 42px;
   font-weight: 800;
   color: var(--accent);
-  letter-spacing: -1px;
+  letter-spacing: -2px;
   line-height: 1;
 }
 
 .tagline {
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-3);
   margin-bottom: 28px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .tabs {
@@ -60,9 +55,9 @@
 
 .tab {
   flex: 1;
-  padding: 8px;
+  padding: 9px;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-2);
   cursor: pointer;
@@ -98,12 +93,39 @@
 }
 
 .field label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputWrap input {
+  padding-right: 40px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 10px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition-fast);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.eyeBtn:hover { color: var(--text-1); }
 
 .error {
   font-size: 13px;
@@ -125,15 +147,16 @@
 .submitBtn {
   width: 100%;
   justify-content: center;
-  padding: 12px;
-  font-size: 15px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
   margin-top: 4px;
-  position: relative;
-  min-height: 44px;
+  min-height: 46px;
+  letter-spacing: 0.02em;
 }
 
 .submitBtn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -141,7 +164,7 @@
   display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(0,0,0,0.3);
+  border: 2px solid rgba(0,0,0,0.2);
   border-top-color: #0a0a0a;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -155,7 +178,7 @@
   font-size: 13px;
   color: var(--text-3);
   text-align: center;
-  padding: 4px;
+  padding: 6px;
   transition: color var(--transition-fast);
   cursor: pointer;
   background: none;
@@ -163,6 +186,9 @@
   width: 100%;
 }
 
-.link:hover {
-  color: var(--accent);
+.link:hover { color: var(--accent); }
+
+@media (max-width: 480px) {
+  .card { padding: 32px 24px; }
+  .logoText { font-size: 36px; }
 }

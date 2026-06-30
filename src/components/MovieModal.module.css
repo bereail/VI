@@ -3,13 +3,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px 0;
-  border-bottom: 1px solid var(--bg-3);
   padding-bottom: 16px;
+  border-bottom: 1px solid var(--bg-3);
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
 }
 
@@ -26,15 +26,15 @@
 }
 
 .posterPreview img {
-  height: 120px;
+  height: 110px;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);
   object-fit: cover;
 }
 
 .colorPreview {
-  width: 80px;
-  height: 120px;
+  width: 74px;
+  height: 110px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -44,9 +44,9 @@
 
 .colorPreview span {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.25);
 }
 
 .colorGrid {
@@ -57,17 +57,15 @@
 }
 
 .colorChip {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid transparent;
   transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
-.colorChip:hover {
-  transform: scale(1.15);
-}
+.colorChip:hover { transform: scale(1.15); }
 
 .colorActive {
   border-color: var(--accent) !important;
@@ -76,8 +74,8 @@
 }
 
 .colorPicker {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -101,25 +99,19 @@
   gap: 6px;
 }
 
-.span2 {
-  grid-column: 1 / -1;
-}
+.span2 { grid-column: 1 / -1; }
 
 label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-.req {
-  color: var(--accent);
-}
+.req { color: var(--accent); }
 
-.inputError {
-  border-color: var(--danger) !important;
-}
+.inputError { border-color: var(--danger) !important; }
 
 .error {
   font-size: 11px;
@@ -128,13 +120,13 @@ label {
 
 textarea {
   resize: vertical;
-  min-height: 70px;
+  min-height: 68px;
 }
 
 .genreGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .genreChip {
@@ -147,10 +139,7 @@ textarea {
   cursor: pointer;
 }
 
-.genreChip:hover {
-  background: var(--bg-4);
-  color: var(--text-1);
-}
+.genreChip:hover { background: var(--bg-4); color: var(--text-1); }
 
 .genreActive {
   background: var(--accent-dim) !important;
@@ -178,9 +167,7 @@ textarea {
   transition: background var(--transition-fast);
 }
 
-.genreTag:hover {
-  background: rgba(232, 184, 109, 0.25);
-}
+.genreTag:hover { background: rgba(232, 184, 109, 0.25); }
 
 .statusBtns {
   display: flex;
@@ -193,16 +180,13 @@ textarea {
   border-radius: var(--radius-sm);
   background: var(--bg-3);
   color: var(--text-2);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.statusBtn:hover {
-  background: var(--bg-4);
-  color: var(--text-1);
-}
+.statusBtn:hover { background: var(--bg-4); color: var(--text-1); }
 
 .statusActive {
   background: var(--accent-dim) !important;
@@ -216,4 +200,12 @@ textarea {
   gap: 10px;
   padding: 16px 24px;
   border-top: 1px solid var(--bg-3);
+}
+
+@media (max-width: 480px) {
+  .header { padding: 16px 16px 12px; }
+  .body { padding: 16px; }
+  .footer { padding: 12px 16px; }
+  .grid { grid-template-columns: 1fr; }
+  .span2 { grid-column: 1; }
 }

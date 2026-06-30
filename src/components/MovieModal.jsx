@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { StarRating } from './StarRating'
+import { Icon } from './Icon'
 import styles from './MovieModal.module.css'
 
 const GENRE_OPTIONS = [
@@ -77,15 +78,17 @@ export function MovieModal({ movie, onSave, onClose }) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600 }}>
+      <div className="modal-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 580 }}>
         <form onSubmit={handleSubmit}>
           <div className={styles.header}>
             <h2 className={styles.title}>{isEdit ? 'Editar película' : 'Agregar película'}</h2>
-            <button type="button" className="btn btn-ghost" onClick={onClose} aria-label="Cerrar">✕</button>
+            <button type="button" className="btn btn-ghost" onClick={onClose} aria-label="Cerrar" style={{ padding: '6px', borderRadius: 'var(--radius-sm)' }}>
+              <Icon name="close" size={18} />
+            </button>
           </div>
 
           <div className={styles.body}>
-            {/* Poster preview or color preview */}
+            {/* Poster preview */}
             <div className={styles.posterPreview}>
               {form.poster ? (
                 <img src={form.poster} alt="Tapa" />
@@ -164,14 +167,13 @@ export function MovieModal({ movie, onSave, onClose }) {
                   <div className={styles.selectedGenres}>
                     {form.genres.map((g) => (
                       <button key={g} type="button" className={styles.genreTag} onClick={() => toggleGenre(g)}>
-                        {g} ✕
+                        {g} ×
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Color de tapa — solo visible si no hay poster de TMDB */}
               {!form.poster && (
                 <div className={`${styles.field} ${styles.span2}`}>
                   <label>Color de tapa</label>

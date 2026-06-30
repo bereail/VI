@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from '../components/Icon'
 import styles from './LoginPage.module.css'
 
 const VIEWS = { login: 'login', register: 'register', reset: 'reset' }
@@ -8,13 +9,23 @@ export function LoginPage({ onLogin, onRegister, onReset }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [password2, setPassword2] = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [showPass2, setShowPass2] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const clear = () => { setError(''); setSuccess('') }
 
-  const go = (v) => { setView(v); setError(''); setSuccess(''); setPassword(''); setPassword2('') }
+  const go = (v) => {
+    setView(v)
+    setError('')
+    setSuccess('')
+    setPassword('')
+    setPassword2('')
+    setShowPass(false)
+    setShowPass2(false)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -58,27 +69,28 @@ export function LoginPage({ onLogin, onRegister, onReset }) {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.logo}>
-          <span className={styles.logoIcon}>🎬</span>
           <span className={styles.logoText}>VI</span>
         </div>
-        <p className={styles.tagline}>Tu registro de películas</p>
+        <p className={styles.tagline}>Tu colección de películas</p>
 
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${view === VIEWS.login ? styles.tabActive : ''}`}
-            onClick={() => go(VIEWS.login)}
-            type="button"
-          >
-            Ingresar
-          </button>
-          <button
-            className={`${styles.tab} ${view === VIEWS.register ? styles.tabActive : ''}`}
-            onClick={() => go(VIEWS.register)}
-            type="button"
-          >
-            Registrarse
-          </button>
-        </div>
+        {view !== VIEWS.reset && (
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${view === VIEWS.login ? styles.tabActive : ''}`}
+              onClick={() => go(VIEWS.login)}
+              type="button"
+            >
+              Ingresar
+            </button>
+            <button
+              className={`${styles.tab} ${view === VIEWS.register ? styles.tabActive : ''}`}
+              onClick={() => go(VIEWS.register)}
+              type="button"
+            >
+              Registrarse
+            </button>
+          </div>
+        )}
 
         {view === VIEWS.reset && (
           <h2 className={styles.resetTitle}>Recuperar contraseña</h2>
@@ -102,56 +114,100 @@ export function LoginPage({ onLogin, onRegister, onReset }) {
             <>
               <div className={styles.field}>
                 <label htmlFor="newpass">Nueva contraseña</label>
-                <input
-                  id="newpass"
-                  type="password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clear() }}
-                  placeholder="Mínimo 6 caracteres"
-                  autoComplete="new-password"
-                  disabled={loading}
-                />
+                <div className={styles.inputWrap}>
+                  <input
+                    id="newpass"
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); clear() }}
+                    placeholder="Mínimo 6 caracteres"
+                    autoComplete="new-password"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    className={styles.eyeBtn}
+                    onClick={() => setShowPass(v => !v)}
+                    aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    tabIndex={-1}
+                  >
+                    <Icon name={showPass ? 'eyeOff' : 'eye'} size={16} />
+                  </button>
+                </div>
               </div>
               <div className={styles.field}>
                 <label htmlFor="newpass2">Repetir contraseña</label>
-                <input
-                  id="newpass2"
-                  type="password"
-                  value={password2}
-                  onChange={(e) => { setPassword2(e.target.value); clear() }}
-                  placeholder="Repetí la contraseña"
-                  autoComplete="new-password"
-                  disabled={loading}
-                />
+                <div className={styles.inputWrap}>
+                  <input
+                    id="newpass2"
+                    type={showPass2 ? 'text' : 'password'}
+                    value={password2}
+                    onChange={(e) => { setPassword2(e.target.value); clear() }}
+                    placeholder="Repetí la contraseña"
+                    autoComplete="new-password"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    className={styles.eyeBtn}
+                    onClick={() => setShowPass2(v => !v)}
+                    aria-label={showPass2 ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    tabIndex={-1}
+                  >
+                    <Icon name={showPass2 ? 'eyeOff' : 'eye'} size={16} />
+                  </button>
+                </div>
               </div>
             </>
           ) : (
             <div className={styles.field}>
               <label htmlFor="password">Contraseña</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); clear() }}
-                placeholder={view === VIEWS.register ? 'Mínimo 6 caracteres' : 'Tu contraseña'}
-                autoComplete={view === VIEWS.register ? 'new-password' : 'current-password'}
-                disabled={loading}
-              />
+              <div className={styles.inputWrap}>
+                <input
+                  id="password"
+                  type={showPass ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); clear() }}
+                  placeholder={view === VIEWS.register ? 'Mínimo 6 caracteres' : 'Tu contraseña'}
+                  autoComplete={view === VIEWS.register ? 'new-password' : 'current-password'}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className={styles.eyeBtn}
+                  onClick={() => setShowPass(v => !v)}
+                  aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  tabIndex={-1}
+                >
+                  <Icon name={showPass ? 'eyeOff' : 'eye'} size={16} />
+                </button>
+              </div>
             </div>
           )}
 
           {view === VIEWS.register && (
             <div className={styles.field}>
               <label htmlFor="password2">Repetir contraseña</label>
-              <input
-                id="password2"
-                type="password"
-                value={password2}
-                onChange={(e) => { setPassword2(e.target.value); clear() }}
-                placeholder="Repetí la contraseña"
-                autoComplete="new-password"
-                disabled={loading}
-              />
+              <div className={styles.inputWrap}>
+                <input
+                  id="password2"
+                  type={showPass2 ? 'text' : 'password'}
+                  value={password2}
+                  onChange={(e) => { setPassword2(e.target.value); clear() }}
+                  placeholder="Repetí la contraseña"
+                  autoComplete="new-password"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className={styles.eyeBtn}
+                  onClick={() => setShowPass2(v => !v)}
+                  aria-label={showPass2 ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  tabIndex={-1}
+                >
+                  <Icon name={showPass2 ? 'eyeOff' : 'eye'} size={16} />
+                </button>
+              </div>
             </div>
           )}
 

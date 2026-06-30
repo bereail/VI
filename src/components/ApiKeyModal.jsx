@@ -23,7 +23,7 @@ export function ApiKeyModal({ onClose }) {
     <div className="modal-backdrop" onClick={() => onClose(false)}>
       <div className="modal-panel" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>🎬 Conectar con TMDB</h2>
+          <h2 className={styles.title}>Conectar con TMDB</h2>
         </div>
         <form onSubmit={handleSave}>
           <div className={styles.body}>

@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { MovieCard } from '../components/MovieCard'
 import { MovieRow } from '../components/MovieRow'
 import { DiscoverStrip } from '../components/DiscoverStrip'
+import { Icon } from '../components/Icon'
 import { useDebounce } from '../hooks/useDebounce'
 import styles from './LibraryPage.module.css'
 
@@ -186,60 +187,86 @@ export function LibraryPage({
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.logo}>
-            <span className={styles.logoIcon}>🎬</span>
-            <span className={styles.logoText}>VI</span>
-          </div>
+          <span className={styles.logoText}>VI</span>
           <div className={styles.counters}>
-            <span className={styles.counter}>{stats.watched} vistas</span>
-            <span className={styles.counterSep}>·</span>
-            <span className={styles.counter}>{stats.pending} pendientes</span>
+            <span>{stats.watched} vistas</span>
+            <span className={styles.sep}>·</span>
+            <span>{stats.pending} pendientes</span>
           </div>
         </div>
 
         <div className={styles.headerRight}>
-          {/* Desktop */}
-          <span className={`${styles.userEmail} ${styles.desktopOnly}`} title={user?.email}>{user?.email}</span>
-          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onStats} aria-label="Estadísticas">📊</button>
-          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onApiKey} title="Configurar TMDB API key" aria-label="API key">⚙️</button>
-          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onToggleTheme} aria-label="Cambiar tema">
-            {theme === 'dark' ? '☀️' : '🌙'}
+          {/* Desktop buttons */}
+          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onStats} aria-label="Estadísticas" title="Estadísticas">
+            <Icon name="chart" size={18} />
+          </button>
+          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onApiKey} title="TMDB API key" aria-label="API key">
+            <Icon name="settings" size={18} />
+          </button>
+          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onToggleTheme} aria-label={`Tema ${theme === 'dark' ? 'claro' : 'oscuro'}`} title={`Tema ${theme === 'dark' ? 'claro' : 'oscuro'}`}>
+            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
           </button>
           {onOpenAdmin && (
-            <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onOpenAdmin} aria-label="Panel admin" title="Panel admin">👥</button>
+            <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onOpenAdmin} aria-label="Panel admin" title="Admin">
+              <Icon name="users" size={18} />
+            </button>
           )}
-          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">↩</button>
           <div className={`${styles.headerMenu} ${styles.desktopOnly}`}>
-            <button className="btn btn-ghost" onClick={onExport} title="Exportar" aria-label="Exportar">⬆️</button>
-            <button className="btn btn-ghost" onClick={handleImportClick} title="Importar" aria-label="Importar">⬇️</button>
+            <button className={`btn btn-ghost ${styles.iconBtn}`} onClick={onExport} title="Exportar" aria-label="Exportar">
+              <Icon name="upload" size={18} />
+            </button>
+            <button className={`btn btn-ghost ${styles.iconBtn}`} onClick={handleImportClick} title="Importar" aria-label="Importar">
+              <Icon name="download" size={18} />
+            </button>
           </div>
-          <button className={`btn btn-ghost ${styles.desktopOnly}`} onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">🔍 TMDB</button>
+          <button className={`btn btn-ghost ${styles.tmdbBtn} ${styles.desktopOnly}`} onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">
+            <Icon name="search" size={16} />
+            TMDB
+          </button>
+          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">
+            <Icon name="logout" size={18} />
+          </button>
 
           {/* Mobile dropdown */}
           <div className={`${styles.mobileMenuWrap} ${styles.mobileOnly}`} ref={menuRef}>
             <button
-              className="btn btn-ghost"
+              className={`btn btn-ghost ${styles.iconBtn}`}
               onClick={() => setMenuOpen(o => !o)}
               aria-label="Más opciones"
               aria-expanded={menuOpen}
             >
-              ⋮
+              <Icon name="dots" size={20} />
             </button>
             {menuOpen && (
               <div className={styles.mobileDropdown}>
                 <span className={styles.dropdownEmail}>{user?.email}</span>
-                <button className="btn btn-ghost" onClick={() => { onStats(); closeMenu() }}>📊 Estadísticas</button>
-                <button className="btn btn-ghost" onClick={() => { onSearchTmdb(); closeMenu() }}>🔍 Buscar TMDB</button>
-                <button className="btn btn-ghost" onClick={() => { onApiKey(); closeMenu() }}>⚙️ API key</button>
+                <button className="btn btn-ghost" onClick={() => { onStats(); closeMenu() }}>
+                  <Icon name="chart" size={16} /> Estadísticas
+                </button>
+                <button className="btn btn-ghost" onClick={() => { onSearchTmdb(); closeMenu() }}>
+                  <Icon name="search" size={16} /> Buscar TMDB
+                </button>
+                <button className="btn btn-ghost" onClick={() => { onApiKey(); closeMenu() }}>
+                  <Icon name="settings" size={16} /> API key
+                </button>
                 <button className="btn btn-ghost" onClick={() => { onToggleTheme(); closeMenu() }}>
-                  {theme === 'dark' ? '☀️' : '🌙'} Tema
+                  <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={16} />
+                  {theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
                 </button>
                 {onOpenAdmin && (
-                  <button className="btn btn-ghost" onClick={() => { onOpenAdmin(); closeMenu() }}>👥 Admin</button>
+                  <button className="btn btn-ghost" onClick={() => { onOpenAdmin(); closeMenu() }}>
+                    <Icon name="users" size={16} /> Admin
+                  </button>
                 )}
-                <button className="btn btn-ghost" onClick={() => { onExport(); closeMenu() }}>⬆️ Exportar</button>
-                <button className="btn btn-ghost" onClick={() => { handleImportClick(); closeMenu() }}>⬇️ Importar</button>
-                <button className="btn btn-ghost" onClick={() => { onLogout(); closeMenu() }}>↩ Cerrar sesión</button>
+                <button className="btn btn-ghost" onClick={() => { onExport(); closeMenu() }}>
+                  <Icon name="upload" size={16} /> Exportar
+                </button>
+                <button className="btn btn-ghost" onClick={() => { handleImportClick(); closeMenu() }}>
+                  <Icon name="download" size={16} /> Importar
+                </button>
+                <button className={`btn btn-ghost ${styles.menuLogout}`} onClick={() => { onLogout(); closeMenu() }}>
+                  <Icon name="logout" size={16} /> Cerrar sesión
+                </button>
               </div>
             )}
           </div>
@@ -253,14 +280,17 @@ export function LibraryPage({
             aria-hidden
           />
 
-          <button className="btn btn-primary" onClick={onAdd} aria-label="Agregar película (N)">+ Agregar</button>
+          <button className="btn btn-primary" onClick={onAdd} aria-label="Agregar película (N)">
+            <Icon name="plus" size={16} />
+            Agregar
+          </button>
         </div>
       </header>
 
       {/* Controls */}
       <div className={styles.controls}>
         <div className={styles.searchWrap}>
-          <span className={styles.searchIcon}>🔍</span>
+          <Icon name="search" size={16} className={styles.searchIcon} />
           <input
             className={styles.searchInput}
             value={search}
@@ -270,7 +300,9 @@ export function LibraryPage({
             data-shortcut="filter"
           />
           {search && (
-            <button className="btn btn-ghost" onClick={() => setSearch('')} aria-label="Limpiar" style={{ padding: '4px 8px' }}>✕</button>
+            <button className={`btn btn-ghost ${styles.clearBtn}`} onClick={() => setSearch('')} aria-label="Limpiar">
+              <Icon name="close" size={14} />
+            </button>
           )}
         </div>
 
@@ -309,13 +341,17 @@ export function LibraryPage({
                 onClick={() => setViewAndPersist('grid')}
                 aria-label="Vista cuadrícula"
                 title="Cuadrícula"
-              >⊞</button>
+              >
+                <Icon name="grid" size={15} />
+              </button>
               <button
                 className={`${styles.viewBtn} ${view === 'list' ? styles.viewActive : ''}`}
                 onClick={() => setViewAndPersist('list')}
                 aria-label="Vista lista"
                 title="Lista"
-              >☰</button>
+              >
+                <Icon name="list" size={15} />
+              </button>
             </div>
 
             <button
@@ -323,7 +359,9 @@ export function LibraryPage({
               onClick={() => setFiltersOpen((o) => !o)}
               aria-expanded={filtersOpen}
             >
-              Filtros {activeFilters > 0 && <span className={styles.filterBadge}>{activeFilters}</span>}
+              <Icon name="filter" size={15} />
+              Filtros
+              {activeFilters > 0 && <span className={styles.filterBadge}>{activeFilters}</span>}
             </button>
           </div>
         </div>
@@ -378,12 +416,18 @@ export function LibraryPage({
       <main className={styles.main}>
         {movies.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🎬</div>
+            <div className={styles.emptyIcon}>
+              <Icon name="film" size={56} style={{ color: 'var(--bg-4)' }} />
+            </div>
             <h2>Empezá tu filmoteka</h2>
             <p>Agregá películas manualmente o buscalas en TMDB.</p>
             <div className={styles.emptyActions}>
-              <button className="btn btn-primary" onClick={onSearchTmdb}>🔍 Buscar en TMDB</button>
-              <button className="btn btn-secondary" onClick={onAdd}>+ Agregar manual</button>
+              <button className="btn btn-primary" onClick={onSearchTmdb}>
+                <Icon name="search" size={16} /> Buscar en TMDB
+              </button>
+              <button className="btn btn-secondary" onClick={onAdd}>
+                <Icon name="plus" size={16} /> Agregar manual
+              </button>
             </div>
           </div>
         ) : filtered.length === 0 ? (

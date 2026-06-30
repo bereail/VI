@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchTrending, getMovieDetails } from '../hooks/useMovieSearch'
+import { Icon } from './Icon'
 import styles from './DiscoverStrip.module.css'
 
 export function DiscoverStrip({ onSelect, onExplore }) {
@@ -36,22 +37,24 @@ export function DiscoverStrip({ onSelect, onExplore }) {
       <div className={styles.header}>
         <div className={styles.titleWrap}>
           <span className={styles.title}>Tendencias</span>
-          <span className={styles.sub}>esta semana en TMDB</span>
+          <span className={styles.sub}>esta semana</span>
         </div>
         <div className={styles.actions}>
-          <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={onExplore}>
-            Explorar más →
+          <button className="btn btn-ghost" style={{ fontSize: 12, gap: 4 }} onClick={onExplore}>
+            Explorar
+            <Icon name="arrowRight" size={14} />
           </button>
           <button
             className="btn btn-ghost"
+            style={{ padding: '6px 8px' }}
             onClick={() => setCollapsed(c => {
               const next = !c
               localStorage.setItem('vi_discover_collapsed', next ? '1' : '0')
               return next
             })}
-            aria-label={collapsed ? 'Mostrar' : 'Ocultar'}
+            aria-label={collapsed ? 'Mostrar tendencias' : 'Ocultar tendencias'}
           >
-            {collapsed ? '▼' : '▲'}
+            <Icon name={collapsed ? 'chevDown' : 'chevUp'} size={16} />
           </button>
         </div>
       </div>
