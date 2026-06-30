@@ -1,15 +1,7 @@
 import { StarRating } from './StarRating'
 import { Icon } from './Icon'
+import { initials, formatRuntime } from '../utils'
 import styles from './MovieRow.module.css'
-
-function formatRuntime(min) {
-  if (!min) return null
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  if (!h) return `${m}min`
-  if (!m) return `${h}h`
-  return `${h}h ${m}min`
-}
 
 export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending, onRate, onTogglePriority }) {
   const { id, title, year, director, genres = [], poster, coverColor, status, rating, runtime, priority } = movie
@@ -22,7 +14,7 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
           ? <img src={poster} alt={title} loading="lazy" />
           : (
             <div className={styles.noPoster} style={{ background: coverColor || '#1a2a4a' }}>
-              {title.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
+              {initials(title)}
             </div>
           )
         }

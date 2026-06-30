@@ -5,6 +5,8 @@
 }
 
 :root {
+  color-scheme: dark;
+
   --bg-0: #0a0a0a;
   --bg-1: #111111;
   --bg-2: #1a1a1a;
@@ -64,6 +66,8 @@
 }
 
 [data-theme="light"] {
+  color-scheme: light;
+
   --bg-0: #f0ece4;
   --bg-1: #faf8f4;
   --bg-2: #ffffff;

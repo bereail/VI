@@ -24,7 +24,7 @@ const TAB_SORT = {
 
 export function SearchModal({ onSelect, onClose }) {
   const [query, setQuery] = useState('')
-  const [loading2, setLoading2] = useState(false)
+  const [detailsLoading, setDetailsLoading] = useState(false)
 
   const [tab, setTab] = useState('trending')
   const [genres, setGenres] = useState([])
@@ -132,14 +132,14 @@ export function SearchModal({ onSelect, onClose }) {
   }
 
   const handleSelect = async (movie) => {
-    setLoading2(true)
+    setDetailsLoading(true)
     try {
       const details = await getDetails(movie.tmdbId)
       onSelect(details)
     } catch {
       onSelect(movie)
     } finally {
-      setLoading2(false)
+      setDetailsLoading(false)
     }
   }
 
@@ -172,7 +172,7 @@ export function SearchModal({ onSelect, onClose }) {
 
   const isDiscover = !query
   const displayResults = isDiscover ? discoverResults : results
-  const isLoading = isDiscover ? discoverLoading : (loading || loading2)
+  const isLoading = isDiscover ? discoverLoading : (loading || detailsLoading)
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -281,7 +281,7 @@ export function SearchModal({ onSelect, onClose }) {
           </div>
         )}
 
-        {!isDiscover && !loading && !loading2 && results.length === 0 && query.length > 1 && !error && (
+        {!isDiscover && !loading && !detailsLoading && results.length === 0 && query.length > 1 && !error && (
           <div className={styles.empty}>Sin resultados para "{query}"</div>
         )}
 

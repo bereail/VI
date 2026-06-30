@@ -3,12 +3,12 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { LibraryPage } from '../pages/LibraryPage'
 
 vi.mock('../hooks/useMovieSearch', () => ({
-  fetchTrending: vi.fn().mockResolvedValue([]),
+  fetchTrending: vi.fn().mockReturnValue(new Promise(() => {})),
   getMovieDetails: vi.fn(),
   hasApiKey: vi.fn().mockReturnValue(false),
   useMovieSearch: vi.fn().mockReturnValue({ results: [], loading: false, error: null, search: vi.fn(), clear: vi.fn() }),
   getTmdbGenres: vi.fn().mockResolvedValue([]),
-  fetchDiscover: vi.fn().mockResolvedValue({ results: [], totalPages: 1, page: 1 }),
+  fetchDiscover: vi.fn().mockReturnValue(new Promise(() => {})),
 }))
 
 const noop = () => {}

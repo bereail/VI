@@ -1,22 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
 import { StarRating } from './StarRating'
 import { Icon } from './Icon'
+import { initials, formatRuntime } from '../utils'
 import styles from './MovieCard.module.css'
 
 const DEFAULT_COLOR = '#1a2a4a'
-
-function initials(title = '') {
-  return title.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
-}
-
-function formatRuntime(min) {
-  if (!min) return null
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  if (!h) return `${m}min`
-  if (!m) return `${h}h`
-  return `${h}h ${m}min`
-}
 
 export function MovieCard({ movie, onEdit, onDelete, onMarkWatched, onMarkPending, onRate, onTogglePriority }) {
   const [flipped, setFlipped] = useState(false)
