@@ -4,6 +4,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/vi/',
+  server: {
+    proxy: {
+      '/vi-api': {
+        target: 'https://ailonline.com.ar',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
