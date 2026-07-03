@@ -171,14 +171,18 @@ export function LibraryPage({
     e.target.value = ''
   }, [onImport])
 
-  const clearFilters = useCallback(() => {
+  const clearAdvancedFilters = useCallback(() => {
     setGenre('')
     setDirector('')
     setDecade('')
     setMinRating(0)
+  }, [])
+
+  const clearFilters = useCallback(() => {
+    clearAdvancedFilters()
     setSearch('')
     setStatus('all')
-  }, [])
+  }, [clearAdvancedFilters])
 
   const closeMenu = useCallback(() => setMenuOpen(false), [])
 
@@ -196,39 +200,12 @@ export function LibraryPage({
         </div>
 
         <div className={styles.headerRight}>
-          {/* Desktop buttons */}
-          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onStats} aria-label="Estadísticas" title="Estadísticas">
-            <Icon name="chart" size={18} />
-          </button>
-          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onApiKey} title="TMDB API key" aria-label="API key">
-            <Icon name="settings" size={18} />
-          </button>
-          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onToggleTheme} aria-label={`Tema ${theme === 'dark' ? 'claro' : 'oscuro'}`} title={`Tema ${theme === 'dark' ? 'claro' : 'oscuro'}`}>
-            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
-          </button>
-          {onOpenAdmin && (
-            <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onOpenAdmin} aria-label="Panel admin" title="Admin">
-              <Icon name="users" size={18} />
-            </button>
-          )}
-          <div className={`${styles.headerMenu} ${styles.desktopOnly}`}>
-            <button className={`btn btn-ghost ${styles.iconBtn}`} onClick={onExport} title="Exportar" aria-label="Exportar">
-              <Icon name="upload" size={18} />
-            </button>
-            <button className={`btn btn-ghost ${styles.iconBtn}`} onClick={handleImportClick} title="Importar" aria-label="Importar">
-              <Icon name="download" size={18} />
-            </button>
-          </div>
-          <button className={`btn btn-ghost ${styles.tmdbBtn} ${styles.desktopOnly}`} onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">
+          <button className={`btn btn-ghost ${styles.tmdbBtn}`} onClick={onSearchTmdb} aria-label="Buscar en TMDB (B)">
             <Icon name="search" size={16} />
             TMDB
           </button>
-          <button className={`btn btn-ghost ${styles.iconBtn} ${styles.desktopOnly}`} onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">
-            <Icon name="logout" size={18} />
-          </button>
 
-          {/* Mobile dropdown */}
-          <div className={`${styles.mobileMenuWrap} ${styles.mobileOnly}`} ref={menuRef}>
+          <div className={styles.mobileMenuWrap} ref={menuRef}>
             <button
               className={`btn btn-ghost ${styles.iconBtn}`}
               onClick={() => setMenuOpen(o => !o)}
@@ -242,9 +219,6 @@ export function LibraryPage({
                 <span className={styles.dropdownEmail}>{user?.email}</span>
                 <button className="btn btn-ghost" onClick={() => { onStats(); closeMenu() }}>
                   <Icon name="chart" size={16} /> Estadísticas
-                </button>
-                <button className="btn btn-ghost" onClick={() => { onSearchTmdb(); closeMenu() }}>
-                  <Icon name="search" size={16} /> Buscar TMDB
                 </button>
                 <button className="btn btn-ghost" onClick={() => { onApiKey(); closeMenu() }}>
                   <Icon name="settings" size={16} /> API key
@@ -366,6 +340,40 @@ export function LibraryPage({
           </div>
         </div>
 
+        {activeFilters > 0 && (
+          <div className={styles.activeChips}>
+            {genre && (
+              <button className={styles.chip} onClick={() => setGenre('')}>
+                {genre}
+                <Icon name="close" size={11} />
+              </button>
+            )}
+            {director && (
+              <button className={styles.chip} onClick={() => setDirector('')}>
+                {director}
+                <Icon name="close" size={11} />
+              </button>
+            )}
+            {decade && (
+              <button className={styles.chip} onClick={() => setDecade('')}>
+                {decade}s
+                <Icon name="close" size={11} />
+              </button>
+            )}
+            {minRating > 0 && (
+              <button className={styles.chip} onClick={() => setMinRating(0)}>
+                {'★'.repeat(minRating)}+
+                <Icon name="close" size={11} />
+              </button>
+            )}
+            {activeFilters > 1 && (
+              <button className={styles.clearChip} onClick={clearAdvancedFilters}>
+                Limpiar todo
+              </button>
+            )}
+          </div>
+        )}
+
         {filtersOpen && (
           <div className={styles.filters}>
             <div className={styles.filterField}>
@@ -403,7 +411,7 @@ export function LibraryPage({
               </select>
             </div>
             {activeFilters > 0 && (
-              <button className="btn btn-ghost" onClick={clearFilters} style={{ alignSelf: 'flex-end' }}>
+              <button className="btn btn-ghost" onClick={clearAdvancedFilters} style={{ alignSelf: 'flex-end' }}>
                 Limpiar filtros
               </button>
             )}

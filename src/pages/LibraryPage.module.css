@@ -70,21 +70,7 @@
   flex-shrink: 0;
 }
 
-.headerMenu {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  border: 1px solid var(--bg-3);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.headerMenu .btn {
-  border-radius: 0;
-}
-
-/* Mobile menu */
+/* Overflow menu */
 .mobileMenuWrap {
   position: relative;
 }
@@ -137,10 +123,6 @@
   padding-top: 8px !important;
   color: var(--danger) !important;
 }
-
-/* Desktop/mobile visibility */
-.desktopOnly { display: flex; }
-.mobileOnly  { display: none; }
 
 /* ---- Controls ---- */
 .controls {
@@ -271,6 +253,39 @@
   align-items: center;
   justify-content: center;
 }
+
+.activeChips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  animation: slideUp 0.15s ease;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background var(--transition-fast);
+}
+
+.chip:hover { background: rgba(232, 184, 109, 0.28); }
+
+.clearChip {
+  font-size: 12px;
+  color: var(--text-3);
+  padding: 4px 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.clearChip:hover { color: var(--text-1); }
 
 .filters {
   display: flex;
@@ -415,9 +430,6 @@ kbd {
 
 /* ---- Mobile breakpoint ---- */
 @media (max-width: 600px) {
-  .desktopOnly { display: none !important; }
-  .mobileOnly  { display: flex !important; }
-
   .shortcuts { display: none; }
 
   .controlsRow { flex-wrap: wrap; gap: 8px; }

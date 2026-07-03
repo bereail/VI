@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="12" fill="#0a0a0a"/>
-  <rect x="8" y="14" width="48" height="36" rx="3" fill="none" stroke="#e8b86d" stroke-width="2.5"/>
-  <rect x="8" y="20" width="6" height="6" rx="1" fill="#e8b86d"/>
-  <rect x="8" y="30" width="6" height="6" rx="1" fill="#e8b86d"/>
-  <rect x="8" y="40" width="6" height="6" rx="1" fill="#e8b86d"/>
-  <rect x="50" y="20" width="6" height="6" rx="1" fill="#e8b86d"/>
-  <rect x="50" y="30" width="6" height="6" rx="1" fill="#e8b86d"/>
-  <rect x="50" y="40" width="6" height="6" rx="1" fill="#e8b86d"/>
-  <polygon points="26,22 26,42 44,32" fill="#e8b86d"/>
+  <!-- rollo de película: 6 orificios = "VI" en números romanos -->
+  <circle cx="32" cy="32" r="24" fill="#e8b86d"/>
+  <circle cx="32" cy="32" r="3.5" fill="#0a0a0a"/>
+  <circle cx="32" cy="17" r="5" fill="#0a0a0a"/>
+  <circle cx="45" cy="24.5" r="5" fill="#0a0a0a"/>
+  <circle cx="45" cy="39.5" r="5" fill="#0a0a0a"/>
+  <circle cx="32" cy="47" r="5" fill="#0a0a0a"/>
+  <circle cx="19" cy="39.5" r="5" fill="#0a0a0a"/>
+  <circle cx="19" cy="24.5" r="5" fill="#0a0a0a"/>
 </svg>
