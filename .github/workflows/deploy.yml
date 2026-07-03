@@ -28,21 +28,22 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Add server to known_hosts
-        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+        run: ssh-keyscan -H -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy frontend via rsync
-        run: rsync -avzr --delete dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/vi/
+        run: rsync -avzr --delete -e "ssh -p ${{ secrets.SSH_PORT }}" dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/vi/
 
       - name: Deploy server files via rsync
         run: |
           rsync -avzr \
+            -e "ssh -p ${{ secrets.SSH_PORT }}" \
             --exclude='node_modules' \
             --exclude='.env' \
             server/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/vi-api/
 
       - name: Install server dependencies & run seed
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
             cd /var/www/vi-api &&
             npm install --omit=dev &&
             node seed.js &&
