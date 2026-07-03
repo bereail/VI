@@ -31,7 +31,7 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy frontend via rsync
-        run: rsync -avzr --delete dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/VI/
+        run: rsync -avzr --delete dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/vi/
 
       - name: Deploy server files via rsync
         run: |
