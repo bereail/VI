@@ -6,8 +6,8 @@
   "scope": "/vi/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0a0a",
-  "theme_color": "#e8b86d",
+  "background_color": "#07080a",
+  "theme_color": "#3ee08c",
   "icons": [
     {
       "src": "/vi/favicon.svg",

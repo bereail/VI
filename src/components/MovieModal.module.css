@@ -167,7 +167,7 @@ textarea {
   transition: background var(--transition-fast);
 }
 
-.genreTag:hover { background: rgba(232, 184, 109, 0.25); }
+.genreTag:hover { background: rgba(62, 224, 140, 0.22); }
 
 .statusBtns {
   display: flex;

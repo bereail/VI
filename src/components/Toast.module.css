@@ -47,7 +47,7 @@
   background: var(--accent-dim);
   transition: background var(--transition-fast);
 }
-.action:hover { background: rgba(232, 184, 109, 0.28); }
+.action:hover { background: rgba(62, 224, 140, 0.24); }
 
 .close {
   font-size: 11px;

@@ -68,13 +68,14 @@
 
 .year {
   font-size: 12px;
+  font-family: var(--font-mono);
   color: var(--text-3);
   flex-shrink: 0;
 }
 
 .priorityDot {
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-3);
   flex-shrink: 0;
 }
 
@@ -115,7 +116,7 @@
 
 .watchedBtn:hover { color: var(--status-watched); background: var(--status-watched-bg); }
 .deleteBtn:hover  { color: var(--danger); background: var(--danger-bg); }
-.priorityActive   { color: var(--accent) !important; }
+.priorityActive   { color: var(--accent-3) !important; }
 
 /* Mobile: hide rating on very small screens */
 @media (max-width: 480px) {

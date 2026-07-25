@@ -29,10 +29,21 @@
 .logoText {
   font-family: var(--font-display);
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent);
   letter-spacing: -1px;
   line-height: 1;
+  text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.35);
+  animation: flicker 1.6s ease-out 1;
+}
+
+@keyframes flicker {
+  0% { opacity: 0; text-shadow: none; }
+  4% { opacity: 1; }
+  8% { opacity: 0.3; }
+  12% { opacity: 1; }
+  20% { opacity: 0.6; }
+  28% { opacity: 1; text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.35); }
 }
 
 .counters {
@@ -40,6 +51,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
+  font-family: var(--font-mono);
   color: var(--text-3);
 }
 
@@ -216,6 +228,7 @@
 
 .tabCount {
   font-size: 11px;
+  font-family: var(--font-mono);
   background: var(--bg-4);
   padding: 1px 5px;
   border-radius: 99px;
@@ -243,7 +256,7 @@
 
 .filterBadge {
   background: var(--accent);
-  color: #0a0a0a;
+  color: #04140b;
   font-size: 10px;
   font-weight: 700;
   width: 16px;
@@ -275,7 +288,7 @@
   transition: background var(--transition-fast);
 }
 
-.chip:hover { background: rgba(232, 184, 109, 0.28); }
+.chip:hover { background: rgba(62, 224, 140, 0.24); }
 
 .clearChip {
   font-size: 12px;
@@ -418,7 +431,7 @@ kbd {
   border-radius: 3px;
   padding: 1px 5px;
   font-size: 10px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: var(--text-2);
 }
 

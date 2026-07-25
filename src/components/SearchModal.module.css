@@ -302,6 +302,7 @@
 .tmdbRating {
   color: var(--accent);
   font-weight: 600;
+  font-family: var(--font-mono);
   font-size: 12px;
 }
 

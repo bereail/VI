@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
+import { Icon } from '../components/Icon'
 import styles from './AdminPage.module.css'
 
 function formatDate(str) {
@@ -36,9 +37,7 @@ export function AdminPage({ onBack }) {
     <div className={styles.page}>
       <header className={styles.header}>
         <button className={styles.backBtn} onClick={onBack}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <Icon name="arrowRight" size={14} style={{ transform: 'rotate(180deg)' }} />
           Volver
         </button>
         <h1 className={styles.title}>Panel Admin — VI</h1>
@@ -61,12 +60,11 @@ export function AdminPage({ onBack }) {
                       {u.movie_count} película{u.movie_count !== 1 ? 's' : ''} · desde {formatDate(u.created_at)}
                     </span>
                   </div>
-                  <svg
+                  <Icon
+                    name="chevDown"
+                    size={16}
                     className={`${styles.chevron} ${expanded === u.id ? styles.open : ''}`}
-                    width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  >
-                    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  />
                 </button>
 
                 {expanded === u.id && (

@@ -40,7 +40,7 @@
 
 .summaryAccent {
   background: var(--accent-dim);
-  outline: 1px solid rgba(232, 184, 109, 0.3);
+  outline: 1px solid rgba(62, 224, 140, 0.3);
 }
 
 .summaryNum {
@@ -101,6 +101,7 @@
 
 .monthCount {
   font-size: 9px;
+  font-family: var(--font-mono);
   color: var(--text-3);
   height: 14px;
   line-height: 14px;
@@ -172,6 +173,7 @@
   width: 22px;
   text-align: right;
   font-size: 13px;
+  font-family: var(--font-mono);
   font-weight: 600;
   color: var(--text-1);
 }
@@ -194,6 +196,7 @@
 
 .topRatedRank {
   font-size: 11px;
+  font-family: var(--font-mono);
   font-weight: 700;
   color: var(--text-3);
   width: 22px;

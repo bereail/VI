@@ -160,7 +160,7 @@ export function MovieCard({ movie, onEdit, onDelete, onMarkWatched, onMarkPendin
                 </button>
                 {!isWatched && (
                   <button
-                    className={`btn ${priority ? 'btn-primary' : 'btn-ghost'} ${styles.priorityBtn}`}
+                    className={`btn btn-ghost ${styles.priorityBtn} ${priority ? styles.priorityActive : ''}`}
                     onClick={(e) => handleAction(e, () => onTogglePriority?.(movie.id))}
                     title={priority ? 'Quitar prioridad' : 'Alta prioridad'}
                     aria-label="Prioridad"
