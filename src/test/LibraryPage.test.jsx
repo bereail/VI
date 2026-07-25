@@ -29,6 +29,7 @@ const baseProps = {
   onAddFromDiscover: noop,
   onStats: noop,
   onExport: noop,
+  onBackup: noop,
   onImport: noop,
   onToggleTheme: noop,
   theme: 'dark',

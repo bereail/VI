@@ -51,6 +51,7 @@ export function LibraryPage({
   onAddFromDiscover,
   onStats,
   onExport,
+  onBackup,
   onImport,
   onToggleTheme,
   theme,
@@ -233,7 +234,10 @@ export function LibraryPage({
                   </button>
                 )}
                 <button className="btn btn-ghost" onClick={() => { onExport(); closeMenu() }}>
-                  <Icon name="upload" size={16} /> Exportar
+                  <Icon name="film" size={16} /> Exportar
+                </button>
+                <button className="btn btn-ghost" onClick={() => { onBackup(); closeMenu() }}>
+                  <Icon name="upload" size={16} /> Backup
                 </button>
                 <button className="btn btn-ghost" onClick={() => { handleImportClick(); closeMenu() }}>
                   <Icon name="download" size={16} /> Importar

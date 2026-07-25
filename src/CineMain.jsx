@@ -9,6 +9,7 @@ import { useTheme } from './hooks/useTheme'
 import { useKeyboard } from './hooks/useKeyboard'
 import { useToast } from './hooks/useToast'
 import { hasApiKey } from './hooks/useMovieSearch'
+import { exportLibraryPdf } from './exportCard'
 
 export default function CineMain({ user, onLogout, onOpenAdmin }) {
   const { movies, addMovie, updateMovie, deleteMovie, restoreMovie, togglePriority, markWatched, markPending, exportData, importData, stats, uniqueGenres, uniqueDirectors } = useMovies(user.email)
@@ -87,6 +88,16 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
     }
   }, [importData, toast])
 
+  const handleExportPdf = useCallback(async () => {
+    if (movies.length === 0) return
+    toast({ message: 'Generando PDF...', duration: 3000 })
+    try {
+      await exportLibraryPdf(movies)
+    } catch (e) {
+      toast({ message: 'Error al generar el PDF: ' + e.message, type: 'error' })
+    }
+  }, [movies, toast])
+
   useKeyboard({
     n: openAdd,
     b: openSearch,
@@ -112,7 +123,8 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
         onSearchTmdb={openSearch}
         onAddFromDiscover={handleTmdbSelect}
         onStats={openStats}
-        onExport={exportData}
+        onExport={handleExportPdf}
+        onBackup={exportData}
         onImport={handleImport}
         onToggleTheme={toggleTheme}
         theme={theme}

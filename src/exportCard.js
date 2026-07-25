@@ -2,6 +2,10 @@ import { formatRuntime } from './utils'
 
 const CARD_W = 640
 const CARD_H = 920
+const MARGIN = 36
+const RADIUS = 28
+const PAGE_W = CARD_W + MARGIN * 2
+const PAGE_H = CARD_H + MARGIN * 2
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -42,15 +46,11 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
   return clipped.length
 }
 
-export async function exportMovieCard(movie) {
-  const canvas = document.createElement('canvas')
-  canvas.width = CARD_W
-  canvas.height = CARD_H
-  const ctx = canvas.getContext('2d')
+async function drawCardContent(ctx, movie) {
   const posterH = Math.round(CARD_H * 0.6)
   const isWatched = movie.status === 'vista'
 
-  ctx.fillStyle = '#07080a'
+  ctx.fillStyle = '#0d0f13'
   ctx.fillRect(0, 0, CARD_W, CARD_H)
 
   let posterDrawn = false
@@ -82,8 +82,8 @@ export async function exportMovieCard(movie) {
   }
 
   const grad = ctx.createLinearGradient(0, posterH - 160, 0, posterH)
-  grad.addColorStop(0, 'rgba(7,8,10,0)')
-  grad.addColorStop(1, 'rgba(7,8,10,0.95)')
+  grad.addColorStop(0, 'rgba(13,15,19,0)')
+  grad.addColorStop(1, 'rgba(13,15,19,0.97)')
   ctx.fillStyle = grad
   ctx.fillRect(0, posterH - 160, CARD_W, 160)
 
@@ -162,16 +162,68 @@ export async function exportMovieCard(movie) {
   ctx.textAlign = 'right'
   ctx.fillText('VI', CARD_W - 40, CARD_H - 32)
   ctx.textAlign = 'left'
+}
 
+/** Renders a single movie as a rounded, shadowed card on a transparent
+ *  page — the same treatment the app's own MovieCard uses (radius +
+ *  drop shadow), so the exported image reads as a floating card rather
+ *  than a flat full-bleed rectangle. */
+export async function renderMovieCardCanvas(movie) {
+  const canvas = document.createElement('canvas')
+  canvas.width = PAGE_W
+  canvas.height = PAGE_H
+  const ctx = canvas.getContext('2d')
+
+  ctx.save()
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'
+  ctx.shadowBlur = 32
+  ctx.shadowOffsetY = 12
+  ctx.fillStyle = '#0d0f13'
+  roundRect(ctx, MARGIN, MARGIN, CARD_W, CARD_H, RADIUS)
+  ctx.fill()
+  ctx.restore()
+
+  ctx.save()
+  roundRect(ctx, MARGIN, MARGIN, CARD_W, CARD_H, RADIUS)
+  ctx.clip()
+  ctx.translate(MARGIN, MARGIN)
+  await drawCardContent(ctx, movie)
+  ctx.restore()
+
+  return canvas
+}
+
+function download(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+export async function exportMovieCard(movie) {
+  const canvas = await renderMovieCardCanvas(movie)
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${(movie.title || 'pelicula').replace(/[^a-z0-9]+/gi, '_').toLowerCase()}.png`
-      a.click()
-      URL.revokeObjectURL(url)
+      download(blob, `${(movie.title || 'pelicula').replace(/[^a-z0-9]+/gi, '_').toLowerCase()}.png`)
       resolve()
     }, 'image/png')
   })
+}
+
+/** Builds one PDF with every movie rendered as its own card page —
+ *  a visual, shareable gallery instead of a raw data dump. */
+export async function exportLibraryPdf(movies, filename = 'mi-filmoteka.pdf') {
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF({ unit: 'px', format: [PAGE_W, PAGE_H], compress: true })
+
+  for (let i = 0; i < movies.length; i++) {
+    const canvas = await renderMovieCardCanvas(movies[i])
+    const dataUrl = canvas.toDataURL('image/png')
+    if (i > 0) doc.addPage([PAGE_W, PAGE_H], 'portrait')
+    doc.addImage(dataUrl, 'PNG', 0, 0, PAGE_W, PAGE_H)
+  }
+
+  doc.save(filename)
 }
