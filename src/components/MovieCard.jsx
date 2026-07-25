@@ -39,33 +39,26 @@ export const MovieCard = memo(function MovieCard({ movie, onEdit, onDelete, onMa
       <div className={`${styles.card} ${flipped ? styles.flipped : ''}`}>
         {/* FRONT */}
         <div className={styles.front}>
-          {poster ? (
-            <img src={poster} alt={title} className={styles.poster} loading="lazy" />
-          ) : (
-            <div className={styles.placeholder} style={{ background: coverColor || DEFAULT_COLOR }}>
-              <span className={styles.initials}>{initials(title)}</span>
-            </div>
-          )}
-          <div className={styles.overlay}>
-            <div className={styles.statusBadge}>
-              {isWatched ? (
-                <span className="badge badge-watched">✓ Vista</span>
-              ) : (
-                <span className="badge badge-pending">◷ Pendiente</span>
-              )}
-              {!isWatched && priority && (
-                <span className={styles.priorityStar}>★</span>
-              )}
-            </div>
-            <div className={styles.titleBar}>
-              <p className={styles.cardTitle}>{title}</p>
-              {year && <span className={styles.cardYear}>{year}</span>}
-              {isWatched && rating > 0 && (
-                <div className={styles.miniStars}>
-                  {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
-                </div>
-              )}
-            </div>
+          <div className={styles.posterWrap}>
+            {poster ? (
+              <img src={poster} alt={title} className={styles.poster} loading="lazy" />
+            ) : (
+              <div className={styles.placeholder} style={{ background: coverColor || DEFAULT_COLOR }}>
+                <span className={styles.initials}>{initials(title)}</span>
+              </div>
+            )}
+            <span className={`${styles.badge} ${isWatched ? styles.badgeWatched : styles.badgePending}`}>
+              {isWatched
+                ? (rating > 0 ? `★ ${rating}` : '✓ Vista')
+                : '◷ Pendiente'}
+            </span>
+            {!isWatched && priority && (
+              <span className={styles.priorityStar}>★</span>
+            )}
+          </div>
+          <div className={styles.info}>
+            <p className={styles.cardTitle} title={title}>{title}</p>
+            {year && <span className={styles.cardYear}>{year}</span>}
           </div>
         </div>
 

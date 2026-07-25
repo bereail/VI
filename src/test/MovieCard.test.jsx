@@ -38,8 +38,13 @@ describe('MovieCard', () => {
     expect(screen.getAllByText('Inception').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('shows watched badge for vista status', () => {
-    renderCard({ status: 'vista' })
+  it('shows a rating badge for vista status with a rating', () => {
+    renderCard({ status: 'vista', rating: 5 })
+    expect(screen.getByText('★ 5')).toBeInTheDocument()
+  })
+
+  it('shows watched badge for vista status without a rating', () => {
+    renderCard({ status: 'vista', rating: 0 })
     expect(screen.getByText('✓ Vista')).toBeInTheDocument()
   })
 
