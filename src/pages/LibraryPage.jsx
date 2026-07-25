@@ -427,8 +427,6 @@ export function LibraryPage({
             <div className={styles.emptyIcon}>
               <Icon name="film" size={56} style={{ color: 'var(--bg-4)' }} />
             </div>
-            <h2>Empezá tu filmoteka</h2>
-            <p>Agregá películas manualmente o buscalas en TMDB.</p>
             <div className={styles.emptyActions}>
               <button className="btn btn-primary" onClick={onSearchTmdb}>
                 <Icon name="search" size={16} /> Buscar en TMDB

@@ -101,7 +101,8 @@ describe('LibraryPage - empty state', () => {
 
   it('muestra el empty state cuando no hay películas', () => {
     render(<LibraryPage {...baseProps} movies={[]} />)
-    expect(screen.getByText('Empezá tu filmoteka')).toBeInTheDocument()
+    expect(screen.getByText('Buscar en TMDB')).toBeInTheDocument()
+    expect(screen.getByText('Agregar manual')).toBeInTheDocument()
   })
 
   it('muestra mensaje de sin resultados cuando hay películas pero no coincide la búsqueda', async () => {
