@@ -1,30 +1,9 @@
 .wrapper {
-  position: relative;
   width: var(--card-w);
   height: calc(var(--card-w) * var(--card-ratio));
   perspective: 1000px;
   cursor: pointer;
   flex-shrink: 0;
-}
-
-/* Contact shadow: reads as a case resting on a shelf, lifts on hover */
-.wrapper::after {
-  content: '';
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: -6px;
-  height: 16px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55) 0%, transparent 72%);
-  opacity: 0.45;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  pointer-events: none;
-  z-index: -1;
-}
-
-.wrapper:hover::after {
-  opacity: 0.8;
-  transform: translateY(3px) scaleX(1.08);
 }
 
 .card {
@@ -37,7 +16,7 @@
 }
 
 .card:hover:not(.flipped) {
-  transform: translateY(-5px) scale(1.02) rotateY(-5deg);
+  transform: translateY(-3px) scale(1.015);
 }
 
 .card.flipped {
@@ -54,14 +33,6 @@
   overflow: hidden;
 }
 
-/* Spine bevel: a hairline highlight down the left edge so the poster
-   reads as a case with physical thickness, not a flat image. */
-.front {
-  box-shadow:
-    inset 2px 0 0 rgba(255, 255, 255, 0.07),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
-}
-
 /* FRONT */
 .poster {
   width: 100%;
@@ -76,34 +47,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-}
-
-/* VHS shell: reel-hole marks near the top + a label window strip,
-   like a cassette held up to the light. */
-.placeholder::before {
-  content: '';
-  position: absolute;
-  top: 14px;
-  left: 0;
-  right: 0;
-  height: 26px;
-  background-image:
-    radial-gradient(circle, rgba(0,0,0,0.55) 0 5px, rgba(255,255,255,0.16) 5px 6.5px, transparent 7px),
-    radial-gradient(circle, rgba(0,0,0,0.55) 0 5px, rgba(255,255,255,0.16) 5px 6.5px, transparent 7px);
-  background-position: 22px center, calc(100% - 22px) center;
-  background-repeat: no-repeat;
-}
-
-.placeholder::after {
-  content: '';
-  position: absolute;
-  left: 16%;
-  right: 16%;
-  top: 68%;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 5px 0 rgba(255, 255, 255, 0.08);
 }
 
 .initials {
@@ -113,36 +56,6 @@
   color: var(--accent);
   opacity: 0.3;
   letter-spacing: -2px;
-}
-
-/* Subtle tape-scan texture over any poster/placeholder + a one-shot
-   tracking flicker on hover — evokes VHS without being a gimmick. */
-.front::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.5) 0px,
-    rgba(255, 255, 255, 0.5) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-}
-
-.wrapper:hover .poster,
-.wrapper:hover .placeholder {
-  animation: vhsTracking 0.35s steps(2, end) 1;
-}
-
-@keyframes vhsTracking {
-  0% { filter: brightness(1) saturate(1); }
-  35% { filter: brightness(1.12) saturate(1.25) hue-rotate(-2deg); }
-  65% { filter: brightness(0.94) saturate(0.9); }
-  100% { filter: brightness(1) saturate(1); }
 }
 
 .overlay {

@@ -212,17 +212,36 @@ export async function exportMovieCard(movie) {
   })
 }
 
-/** Builds one PDF with every movie rendered as its own card page —
- *  a visual, shareable gallery instead of a raw data dump. */
+// Grid layout for the bulk PDF: a contact-sheet of small cards per page
+// instead of one full card per page.
+const GRID_COLS = 3
+const GRID_ROWS = 4
+const GRID_PER_PAGE = GRID_COLS * GRID_ROWS
+const GRID_GAP = 20
+const GRID_OUTER = 30
+const GRID_CELL_W = 220
+const GRID_CELL_H = Math.round(GRID_CELL_W * (PAGE_H / PAGE_W))
+const GRID_DOC_W = GRID_OUTER * 2 + GRID_COLS * GRID_CELL_W + (GRID_COLS - 1) * GRID_GAP
+const GRID_DOC_H = GRID_OUTER * 2 + GRID_ROWS * GRID_CELL_H + (GRID_ROWS - 1) * GRID_GAP
+
+/** Builds one PDF with every movie as a small card in a grid — a
+ *  contact-sheet gallery (10-15 per page) instead of a raw data dump. */
 export async function exportLibraryPdf(movies, filename = 'mi-filmoteka.pdf') {
   const { jsPDF } = await import('jspdf')
-  const doc = new jsPDF({ unit: 'px', format: [PAGE_W, PAGE_H], compress: true })
+  const doc = new jsPDF({ unit: 'px', format: [GRID_DOC_W, GRID_DOC_H], compress: true })
 
   for (let i = 0; i < movies.length; i++) {
+    const posInPage = i % GRID_PER_PAGE
+    if (i > 0 && posInPage === 0) doc.addPage([GRID_DOC_W, GRID_DOC_H], 'portrait')
+
+    const col = posInPage % GRID_COLS
+    const row = Math.floor(posInPage / GRID_COLS)
+    const x = GRID_OUTER + col * (GRID_CELL_W + GRID_GAP)
+    const y = GRID_OUTER + row * (GRID_CELL_H + GRID_GAP)
+
     const canvas = await renderMovieCardCanvas(movies[i])
     const dataUrl = canvas.toDataURL('image/png')
-    if (i > 0) doc.addPage([PAGE_W, PAGE_H], 'portrait')
-    doc.addImage(dataUrl, 'PNG', 0, 0, PAGE_W, PAGE_H)
+    doc.addImage(dataUrl, 'PNG', x, y, GRID_CELL_W, GRID_CELL_H)
   }
 
   doc.save(filename)
