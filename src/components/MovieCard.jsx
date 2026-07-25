@@ -1,12 +1,13 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, memo } from 'react'
 import { StarRating } from './StarRating'
 import { Icon } from './Icon'
 import { initials, formatRuntime } from '../utils'
+import { exportMovieCard } from '../exportCard'
 import styles from './MovieCard.module.css'
 
 const DEFAULT_COLOR = '#1a2a4a'
 
-export function MovieCard({ movie, onEdit, onDelete, onMarkWatched, onMarkPending, onRate, onTogglePriority }) {
+export const MovieCard = memo(function MovieCard({ movie, onEdit, onDelete, onMarkWatched, onMarkPending, onRate, onTogglePriority }) {
   const [flipped, setFlipped] = useState(false)
   const [pickingDate, setPickingDate] = useState(false)
   const [watchDate, setWatchDate] = useState('')
@@ -158,6 +159,14 @@ export function MovieCard({ movie, onEdit, onDelete, onMarkWatched, onMarkPendin
                   <Icon name="edit" size={13} />
                   Editar
                 </button>
+                <button
+                  className={`btn btn-ghost ${styles.priorityBtn}`}
+                  onClick={(e) => handleAction(e, () => exportMovieCard(movie))}
+                  title="Exportar como imagen"
+                  aria-label="Exportar como imagen"
+                >
+                  <Icon name="download" size={14} />
+                </button>
                 {!isWatched && (
                   <button
                     className={`btn btn-ghost ${styles.priorityBtn} ${priority ? styles.priorityActive : ''}`}
@@ -203,4 +212,4 @@ export function MovieCard({ movie, onEdit, onDelete, onMarkWatched, onMarkPendin
       </div>
     </div>
   )
-}
+})

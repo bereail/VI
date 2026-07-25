@@ -29,7 +29,7 @@
 
   --text-1: #eef1f0;
   --text-2: #9aa5a1;
-  --text-3: #5c655f;
+  --text-3: #767f7a;
 
   --status-watched: var(--accent);
   --status-watched-bg: var(--accent-dim);
@@ -85,7 +85,7 @@
   --bg-4: #dbdfd6;
   --text-1: #10130f;
   --text-2: #4d564e;
-  --text-3: #838d84;
+  --text-3: #666f6a;
 
   --accent-dark: #239b5c;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);

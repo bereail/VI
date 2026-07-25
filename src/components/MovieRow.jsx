@@ -1,9 +1,11 @@
+import { memo } from 'react'
 import { StarRating } from './StarRating'
 import { Icon } from './Icon'
 import { initials, formatRuntime } from '../utils'
+import { exportMovieCard } from '../exportCard'
 import styles from './MovieRow.module.css'
 
-export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending, onRate, onTogglePriority }) {
+export const MovieRow = memo(function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending, onRate, onTogglePriority }) {
   const { id, title, year, director, genres = [], poster, coverColor, status, rating, runtime, priority } = movie
   const isWatched = status === 'vista'
 
@@ -57,6 +59,9 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
         <button className={styles.iconBtn} onClick={() => onEdit(movie)} title="Editar" aria-label="Editar">
           <Icon name="edit" size={15} />
         </button>
+        <button className={styles.iconBtn} onClick={() => exportMovieCard(movie)} title="Exportar como imagen" aria-label="Exportar como imagen">
+          <Icon name="download" size={15} />
+        </button>
         {isWatched
           ? (
             <button className={styles.iconBtn} onClick={() => onMarkPending(id)} title="Mover a pendientes" aria-label="Mover a pendientes">
@@ -85,4 +90,4 @@ export function MovieRow({ movie, onEdit, onDelete, onMarkWatched, onMarkPending
       </div>
     </div>
   )
-}
+})

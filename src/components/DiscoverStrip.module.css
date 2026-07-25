@@ -10,12 +10,6 @@
   margin-bottom: 10px;
 }
 
-.titleWrap {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
 .title {
   font-size: 12px;
   font-weight: 700;
@@ -24,15 +18,32 @@
   text-transform: uppercase;
 }
 
-.sub {
-  font-size: 11px;
-  color: var(--text-3);
-}
-
 .actions {
   display: flex;
   align-items: center;
   gap: 2px;
+}
+
+/* Stacked category rows (Tendencias, Mejor puntuadas, Populares, En cines) */
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rowTitle {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* Horizontal scroll */
