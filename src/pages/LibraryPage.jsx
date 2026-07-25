@@ -419,7 +419,7 @@ export function LibraryPage({
         )}
       </div>
 
-      <DiscoverStrip onSelect={onAddFromDiscover} onExplore={onSearchTmdb} />
+      {status === 'all' && <DiscoverStrip onSelect={onAddFromDiscover} onExplore={onSearchTmdb} />}
 
       <main className={styles.main}>
         {movies.length === 0 ? (
