@@ -47,6 +47,5 @@ jobs:
             cd /var/www/vi-api &&
             npm install --omit=dev &&
             node seed.js &&
-            pm2 restart vi-api || pm2 start index.js --name vi-api &&
-            pm2 save
+            systemctl restart vi-api
           "
