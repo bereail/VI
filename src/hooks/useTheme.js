@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const KEY = 'filmoteka_theme'
+const KEY = 'vi_theme'
 
 export function useTheme() {
   const [theme, setTheme] = useState(() => {

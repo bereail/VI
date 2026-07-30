@@ -11,6 +11,7 @@ app.get('/health', (_, res) => res.json({ ok: true }))
 app.use('/auth', require('./routes/auth'))
 app.use('/movies', require('./routes/movies'))
 app.use('/admin', require('./routes/admin'))
+app.use('/proxy', require('./routes/proxy'))
 
 const PORT = process.env.PORT || 3002
 app.listen(PORT, () => console.log(`vi-api on :${PORT}`))

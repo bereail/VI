@@ -34,7 +34,7 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
     backupReminderShown.current = true
     if (checkBackupReminder()) {
       toast({
-        message: 'Hacé un backup de tu filmoteka',
+        message: 'Hacé un backup de tu colección',
         actionLabel: 'Exportar',
         action: exportData,
         duration: 8000,

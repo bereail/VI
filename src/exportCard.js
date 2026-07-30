@@ -1,4 +1,5 @@
 import { formatRuntime } from './utils'
+import { getToken } from './api'
 
 const CARD_W = 640
 const CARD_H = 920
@@ -10,11 +11,28 @@ const PAGE_H = CARD_H + MARGIN * 2
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
     img.onerror = reject
     img.src = src
   })
+}
+
+// TMDB no manda headers CORS en sus imágenes, así que dibujarlas
+// directamente en un <canvas> lo "tainta" e impide exportarlo. Las
+// traemos vía el proxy del propio server (same-origin) como blob.
+async function loadPosterImage(posterUrl) {
+  const token = getToken()
+  const res = await fetch(`/vi-api/proxy/image?url=${encodeURIComponent(posterUrl)}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new Error('No se pudo cargar el poster')
+  const blob = await res.blob()
+  const objectUrl = URL.createObjectURL(blob)
+  try {
+    return await loadImage(objectUrl)
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -56,7 +74,7 @@ async function drawCardContent(ctx, movie) {
   let posterDrawn = false
   if (movie.poster) {
     try {
-      const img = await loadImage(movie.poster)
+      const img = await loadPosterImage(movie.poster)
       const scale = Math.max(CARD_W / img.width, posterH / img.height)
       const w = img.width * scale
       const h = img.height * scale
@@ -214,23 +232,24 @@ export async function exportMovieCard(movie) {
 
 // Grid layout for the bulk PDF: a contact-sheet of small cards per page
 // instead of one full card per page.
-const GRID_COLS = 3
-const GRID_ROWS = 4
+const GRID_COLS = 5
+const GRID_ROWS = 6
 const GRID_PER_PAGE = GRID_COLS * GRID_ROWS
-const GRID_GAP = 20
-const GRID_OUTER = 30
-const GRID_CELL_W = 220
+const GRID_GAP = 16
+const GRID_OUTER = 24
+const GRID_CELL_W = 130
 const GRID_CELL_H = Math.round(GRID_CELL_W * (PAGE_H / PAGE_W))
 const GRID_DOC_W = GRID_OUTER * 2 + GRID_COLS * GRID_CELL_W + (GRID_COLS - 1) * GRID_GAP
 const GRID_DOC_H = GRID_OUTER * 2 + GRID_ROWS * GRID_CELL_H + (GRID_ROWS - 1) * GRID_GAP
 
 /** Builds one PDF with every movie as a small card in a grid — a
- *  contact-sheet gallery (10-15 per page) instead of a raw data dump. */
-export async function exportLibraryPdf(movies, filename = 'mi-filmoteka.pdf') {
+ *  contact-sheet gallery ordenado de mejor a peor puntuada. */
+export async function exportLibraryPdf(movies, filename = 'coleccion-vi.pdf') {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ unit: 'px', format: [GRID_DOC_W, GRID_DOC_H], compress: true })
+  const sorted = [...movies].sort((a, b) => (b.rating || 0) - (a.rating || 0))
 
-  for (let i = 0; i < movies.length; i++) {
+  for (let i = 0; i < sorted.length; i++) {
     const posInPage = i % GRID_PER_PAGE
     if (i > 0 && posInPage === 0) doc.addPage([GRID_DOC_W, GRID_DOC_H], 'portrait')
 
@@ -239,7 +258,7 @@ export async function exportLibraryPdf(movies, filename = 'mi-filmoteka.pdf') {
     const x = GRID_OUTER + col * (GRID_CELL_W + GRID_GAP)
     const y = GRID_OUTER + row * (GRID_CELL_H + GRID_GAP)
 
-    const canvas = await renderMovieCardCanvas(movies[i])
+    const canvas = await renderMovieCardCanvas(sorted[i])
     const dataUrl = canvas.toDataURL('image/png')
     doc.addImage(dataUrl, 'PNG', x, y, GRID_CELL_W, GRID_CELL_H)
   }
