@@ -8,7 +8,7 @@ import './styles/global.css'
 const ADMIN_EMAIL = 'berenicesolohaga@gmail.com'
 
 export default function App() {
-  const { user, login, register, resetPassword, logout } = useAuth()
+  const { user, login, register, resetPassword, guestLogin, logout } = useAuth()
   const [adminOpen, setAdminOpen] = useState(false)
 
   if (!user) {
@@ -17,6 +17,7 @@ export default function App() {
         onLogin={login}
         onRegister={register}
         onReset={resetPassword}
+        onGuestLogin={guestLogin}
       />
     )
   }

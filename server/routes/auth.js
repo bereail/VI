@@ -45,6 +45,19 @@ router.post('/login', async (req, res) => {
   }
 })
 
+router.post('/guest', async (req, res) => {
+  try {
+    const email = process.env.SEED_TEST_EMAIL
+    if (!email) return res.status(503).json({ error: 'Modo invitado no disponible' })
+    const result = await pool.query('SELECT id FROM users WHERE email=$1', [email])
+    if (!result.rows.length) return res.status(503).json({ error: 'Modo invitado no disponible' })
+    res.json({ token: token(result.rows[0].id, email), email })
+  } catch (err) {
+    console.error('[guest]', err)
+    res.status(500).json({ error: 'Error interno' })
+  }
+})
+
 router.post('/reset-password', async (req, res) => {
   try {
     const { email, password } = req.body

@@ -37,10 +37,16 @@ export function useAuth() {
     await api.post('/auth/reset-password', { email, password })
   }, [])
 
+  const guestLogin = useCallback(async () => {
+    const data = await api.post('/auth/guest', {})
+    setToken(data.token)
+    setUser({ email: data.email })
+  }, [])
+
   const logout = useCallback(() => {
     setToken(null)
     setUser(null)
   }, [])
 
-  return { user, login, register, resetPassword, logout }
+  return { user, login, register, resetPassword, guestLogin, logout }
 }

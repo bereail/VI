@@ -4,7 +4,7 @@ import styles from './LoginPage.module.css'
 
 const VIEWS = { login: 'login', register: 'register', reset: 'reset' }
 
-export function LoginPage({ onLogin, onRegister, onReset }) {
+export function LoginPage({ onLogin, onRegister, onReset, onGuestLogin }) {
   const [view, setView] = useState(VIEWS.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -14,6 +14,18 @@ export function LoginPage({ onLogin, onRegister, onReset }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const [guestLoading, setGuestLoading] = useState(false)
+
+  const handleGuest = async () => {
+    clear()
+    setGuestLoading(true)
+    try {
+      await onGuestLogin()
+    } catch (err) {
+      setError(err.message)
+      setGuestLoading(false)
+    }
+  }
 
   const clear = () => { setError(''); setSuccess('') }
 
@@ -227,13 +239,23 @@ export function LoginPage({ onLogin, onRegister, onReset }) {
           </button>
 
           {view === VIEWS.login && (
-            <button
-              type="button"
-              className={styles.link}
-              onClick={() => go(VIEWS.reset)}
-            >
-              ¿Olvidaste tu contraseña?
-            </button>
+            <>
+              <button
+                type="button"
+                className={`btn btn-secondary ${styles.submitBtn}`}
+                onClick={handleGuest}
+                disabled={loading || guestLoading}
+              >
+                {guestLoading ? <span className={styles.spinner} aria-hidden /> : 'Ver sin cuenta'}
+              </button>
+              <button
+                type="button"
+                className={styles.link}
+                onClick={() => go(VIEWS.reset)}
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </>
           )}
 
           {view === VIEWS.reset && (
