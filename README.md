@@ -1,5 +1,7 @@
 # VI — Videoteca personal
 
+[![Tests](https://github.com/bereail/VI/actions/workflows/tests.yml/badge.svg)](https://github.com/bereail/VI/actions/workflows/tests.yml)
+
 Aplicación full-stack para llevar tu propia biblioteca de películas: qué viste, qué querés
 ver, tu puntaje y tus notas, con búsqueda de catálogo real vía la API de TMDB. Diseño propio
 "cyber-minimal retro" con acentos fósforo/cian/magenta sobre fondo oscuro.
