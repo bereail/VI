@@ -28,6 +28,7 @@ export function checkBackupReminder() {
 export function useMovies(userEmail) {
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const moviesRef = useRef(movies)
 
   useEffect(() => { moviesRef.current = movies }, [movies])
@@ -36,10 +37,11 @@ export function useMovies(userEmail) {
     if (!userEmail) return
     let cancelled = false
     setLoading(true)
+    setLoadError(null)
     migrateLocalStorage(userEmail)
       .then(() => api.get('/movies'))
       .then(data => { if (!cancelled) setMovies(data) })
-      .catch(() => {})
+      .catch(err => { if (!cancelled) setLoadError(err.message || 'No se pudo cargar tu biblioteca.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [userEmail])
@@ -201,7 +203,7 @@ export function useMovies(userEmail) {
   }, [movies])
 
   return {
-    movies, loading, addMovie, updateMovie, deleteMovie,
+    movies, loading, loadError, addMovie, updateMovie, deleteMovie,
     restoreMovie, togglePriority, markWatched, markPending,
     exportData, importData, stats, uniqueGenres, uniqueDirectors,
   }

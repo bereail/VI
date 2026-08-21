@@ -33,8 +33,12 @@ export function useAuth() {
     setUser({ email: data.email })
   }, [])
 
-  const resetPassword = useCallback(async (email, password) => {
-    await api.post('/auth/reset-password', { email, password })
+  const forgotPassword = useCallback(async (email) => {
+    await api.post('/auth/forgot-password', { email })
+  }, [])
+
+  const resetPassword = useCallback(async (token, password) => {
+    await api.post('/auth/reset-password', { token, password })
   }, [])
 
   const guestLogin = useCallback(async () => {
@@ -48,5 +52,5 @@ export function useAuth() {
     setUser(null)
   }, [])
 
-  return { user, login, register, resetPassword, guestLogin, logout }
+  return { user, login, register, forgotPassword, resetPassword, guestLogin, logout }
 }

@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 const TOKEN_KEY = 'vi_token'
 
 const mockUsers = {}
+const mockResetTokens = { 'valid-token': null }
 
 function mockToken(email) {
   const payload = btoa(JSON.stringify({ email }))
@@ -40,10 +41,14 @@ function makeFetch() {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ token, email }) })
     }
 
+    if (method === 'POST' && path === '/auth/forgot-password') {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true }) })
+    }
+
     if (method === 'POST' && path === '/auth/reset-password') {
-      const email = body.email?.toLowerCase()
-      if (!mockUsers[email]) {
-        return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'No existe una cuenta con ese email.' }) })
+      const email = mockResetTokens[body.token]
+      if (!email) {
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'El enlace es inválido o ya expiró.' }) })
       }
       mockUsers[email].password = body.password
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true }) })
@@ -138,12 +143,20 @@ describe('useAuth - logout', () => {
   })
 })
 
+describe('useAuth - forgotPassword', () => {
+  it('resolves without throwing regardless of whether the email exists', async () => {
+    const { result } = renderHook(() => useAuth())
+    await act(async () => { await result.current.forgotPassword('anyone@x.com') })
+  })
+})
+
 describe('useAuth - resetPassword', () => {
   it('changes password so old one no longer works', async () => {
     const { result } = renderHook(() => useAuth())
     await act(async () => { await result.current.register('rp@rp.com', 'oldpass') })
     await act(async () => { result.current.logout() })
-    await act(async () => { await result.current.resetPassword('rp@rp.com', 'newpass') })
+    mockResetTokens['valid-token'] = 'rp@rp.com'
+    await act(async () => { await result.current.resetPassword('valid-token', 'newpass') })
     await expect(
       act(async () => { await result.current.login('rp@rp.com', 'oldpass') })
     ).rejects.toThrow('Contraseña incorrecta')
@@ -153,16 +166,17 @@ describe('useAuth - resetPassword', () => {
     const { result } = renderHook(() => useAuth())
     await act(async () => { await result.current.register('np@np.com', 'oldpass') })
     await act(async () => { result.current.logout() })
-    await act(async () => { await result.current.resetPassword('np@np.com', 'newpass') })
+    mockResetTokens['valid-token'] = 'np@np.com'
+    await act(async () => { await result.current.resetPassword('valid-token', 'newpass') })
     await act(async () => { await result.current.login('np@np.com', 'newpass') })
     expect(result.current.user?.email).toBe('np@np.com')
   })
 
-  it('throws if email does not exist', async () => {
+  it('throws if token is invalid or expired', async () => {
     const { result } = renderHook(() => useAuth())
     await expect(
-      act(async () => { await result.current.resetPassword('ghost@x.com', 'newpass') })
-    ).rejects.toThrow('No existe una cuenta')
+      act(async () => { await result.current.resetPassword('bogus-token', 'newpass') })
+    ).rejects.toThrow('inválido o ya expiró')
   })
 })
 

@@ -49,7 +49,8 @@ server/       # backend: Node + Express + PostgreSQL
   seed.js      # datos iniciales, idempotente (no duplica si ya corrió)
 ```
 
-- **Auth:** JWT propio (login, registro, reset de contraseña), contraseñas con bcrypt.
+- **Auth:** JWT propio (login, registro, recuperación de contraseña por email con token de un
+  solo uso), contraseñas con bcrypt, rate limiting en los endpoints de auth.
 - **Deploy:** CI/CD con GitHub Actions — build del frontend, deploy por `rsync` sobre SSH al
   servidor propio, y reinicio del servicio con `systemctl`. Todos los datos de conexión
   (host, usuario, puerto, clave SSH) están en GitHub Secrets, nada hardcodeado.
@@ -58,7 +59,7 @@ server/       # backend: Node + Express + PostgreSQL
 
 - **Frontend:** React 19, Vite, CSS Modules
 - **Backend:** Node.js, Express, PostgreSQL (`pg`), JWT (`jsonwebtoken`), `bcryptjs`
-- **Testing:** Vitest, Testing Library, Playwright (E2E)
+- **Testing:** Vitest, Testing Library
 - **Datos de películas:** [TMDB API](https://www.themoviedb.org/)
 - **Exportación:** jsPDF
 
@@ -91,10 +92,12 @@ npm run dev
 | `DATABASE_URL` | backend | Cadena de conexión a PostgreSQL |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | backend | Usuario admin creado por `seed.js` |
 | `SEED_TEST_EMAIL` / `SEED_TEST_PASSWORD` | backend | Usuario de prueba creado por `seed.js` |
+| `JWT_SECRET` | backend | Clave para firmar los tokens de sesión |
+| `EMAIL_USER` / `EMAIL_PASS` | backend | Cuenta de Gmail (con contraseña de aplicación) usada para enviar el email de recuperación de contraseña |
 
 ## Testing
 
-**128 tests automatizados** (10 archivos) con Vitest + Testing Library, cubriendo componentes,
+**130 tests automatizados** (10 archivos) con Vitest + Testing Library, cubriendo componentes,
 hooks y páginas:
 
 ```bash

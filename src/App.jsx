@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { LoginPage } from './pages/LoginPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { AdminPage } from './pages/AdminPage'
 import CineMain from './CineMain'
 import './styles/global.css'
@@ -8,15 +9,25 @@ import './styles/global.css'
 const ADMIN_EMAIL = 'berenicesolohaga@gmail.com'
 
 export default function App() {
-  const { user, login, register, resetPassword, guestLogin, logout } = useAuth()
+  const { user, login, register, forgotPassword, resetPassword, guestLogin, logout } = useAuth()
   const [adminOpen, setAdminOpen] = useState(false)
+  const [resetToken] = useState(() => new URLSearchParams(window.location.search).get('reset_token'))
+
+  const handleResetDone = () => {
+    window.history.replaceState({}, '', window.location.pathname)
+    window.location.reload()
+  }
+
+  if (resetToken) {
+    return <ResetPasswordPage token={resetToken} onReset={resetPassword} onDone={handleResetDone} />
+  }
 
   if (!user) {
     return (
       <LoginPage
         onLogin={login}
         onRegister={register}
-        onReset={resetPassword}
+        onForgotPassword={forgotPassword}
         onGuestLogin={guestLogin}
       />
     )

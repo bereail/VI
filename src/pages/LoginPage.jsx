@@ -4,7 +4,7 @@ import styles from './LoginPage.module.css'
 
 const VIEWS = { login: 'login', register: 'register', reset: 'reset' }
 
-export function LoginPage({ onLogin, onRegister, onReset, onGuestLogin }) {
+export function LoginPage({ onLogin, onRegister, onForgotPassword, onGuestLogin }) {
   const [view, setView] = useState(VIEWS.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -54,11 +54,6 @@ export function LoginPage({ onLogin, onRegister, onReset, onGuestLogin }) {
 
     if (view !== VIEWS.reset && !password) { setError('Ingresá tu contraseña.'); return }
 
-    if (view === VIEWS.reset) {
-      if (password.length < 6) { setError('La nueva contraseña debe tener al menos 6 caracteres.'); return }
-      if (password !== password2) { setError('Las contraseñas no coinciden.'); return }
-    }
-
     setLoading(true)
     try {
       if (view === VIEWS.login) {
@@ -66,9 +61,8 @@ export function LoginPage({ onLogin, onRegister, onReset, onGuestLogin }) {
       } else if (view === VIEWS.register) {
         await onRegister(norm, password)
       } else {
-        await onReset(norm, password)
-        setSuccess('Contraseña actualizada. Ya podés iniciar sesión.')
-        go(VIEWS.login)
+        await onForgotPassword(norm)
+        setSuccess('Si el email está registrado, te enviamos un enlace para restablecer tu contraseña. Revisá tu casilla.')
       }
     } catch (err) {
       setError(err.message)
@@ -105,73 +99,31 @@ export function LoginPage({ onLogin, onRegister, onReset, onGuestLogin }) {
         )}
 
         {view === VIEWS.reset && (
-          <h2 className={styles.resetTitle}>Recuperar contraseña</h2>
+          <>
+            <h2 className={styles.resetTitle}>Recuperar contraseña</h2>
+            {!success && (
+              <p className={styles.resetHint}>Ingresá tu email y te enviamos un enlace para elegir una nueva contraseña.</p>
+            )}
+          </>
         )}
 
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
-          <div className={styles.field}>
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); clear() }}
-              placeholder="tu@email.com"
-              autoComplete="email"
-              disabled={loading}
-            />
-          </div>
+          {(view !== VIEWS.reset || !success) && (
+            <div className={styles.field}>
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); clear() }}
+                placeholder="tu@email.com"
+                autoComplete="email"
+                disabled={loading}
+              />
+            </div>
+          )}
 
-          {view === VIEWS.reset ? (
-            <>
-              <div className={styles.field}>
-                <label htmlFor="newpass">Nueva contraseña</label>
-                <div className={styles.inputWrap}>
-                  <input
-                    id="newpass"
-                    type={showPass ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); clear() }}
-                    placeholder="Mínimo 6 caracteres"
-                    autoComplete="new-password"
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    className={styles.eyeBtn}
-                    onClick={() => setShowPass(v => !v)}
-                    aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    tabIndex={-1}
-                  >
-                    <Icon name={showPass ? 'eyeOff' : 'eye'} size={16} />
-                  </button>
-                </div>
-              </div>
-              <div className={styles.field}>
-                <label htmlFor="newpass2">Repetir contraseña</label>
-                <div className={styles.inputWrap}>
-                  <input
-                    id="newpass2"
-                    type={showPass2 ? 'text' : 'password'}
-                    value={password2}
-                    onChange={(e) => { setPassword2(e.target.value); clear() }}
-                    placeholder="Repetí la contraseña"
-                    autoComplete="new-password"
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    className={styles.eyeBtn}
-                    onClick={() => setShowPass2(v => !v)}
-                    aria-label={showPass2 ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    tabIndex={-1}
-                  >
-                    <Icon name={showPass2 ? 'eyeOff' : 'eye'} size={16} />
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
+          {view === VIEWS.reset ? null : (
             <div className={styles.field}>
               <label htmlFor="password">Contraseña</label>
               <div className={styles.inputWrap}>
@@ -226,17 +178,19 @@ export function LoginPage({ onLogin, onRegister, onReset, onGuestLogin }) {
           {error && <p className={styles.error} role="alert">{error}</p>}
           {success && <p className={styles.success} role="status">{success}</p>}
 
-          <button
-            type="submit"
-            className={`btn btn-primary ${styles.submitBtn}`}
-            disabled={loading}
-          >
-            {loading ? (
-              <span className={styles.spinner} aria-hidden />
-            ) : view === VIEWS.login ? 'Ingresar'
-              : view === VIEWS.register ? 'Crear cuenta'
-              : 'Cambiar contraseña'}
-          </button>
+          {(view !== VIEWS.reset || !success) && (
+            <button
+              type="submit"
+              className={`btn btn-primary ${styles.submitBtn}`}
+              disabled={loading}
+            >
+              {loading ? (
+                <span className={styles.spinner} aria-hidden />
+              ) : view === VIEWS.login ? 'Ingresar'
+                : view === VIEWS.register ? 'Crear cuenta'
+                : 'Enviar enlace'}
+            </button>
+          )}
 
           {view === VIEWS.login && (
             <>

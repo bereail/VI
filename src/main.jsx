@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import { ToastProvider } from './hooks/useToast.jsx'
+import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -11,8 +12,10 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ToastProvider>
-      <App />
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )

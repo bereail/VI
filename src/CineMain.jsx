@@ -12,7 +12,7 @@ import { hasApiKey } from './hooks/useMovieSearch'
 import { exportLibraryPdf } from './exportCard'
 
 export default function CineMain({ user, onLogout, onOpenAdmin }) {
-  const { movies, addMovie, updateMovie, deleteMovie, restoreMovie, togglePriority, markWatched, markPending, exportData, importData, stats, uniqueGenres, uniqueDirectors } = useMovies(user.email)
+  const { movies, loadError, addMovie, updateMovie, deleteMovie, restoreMovie, togglePriority, markWatched, markPending, exportData, importData, stats, uniqueGenres, uniqueDirectors } = useMovies(user.email)
   const { theme, toggle: toggleTheme } = useTheme()
   const toast = useToast()
 
@@ -28,6 +28,10 @@ export default function CineMain({ user, onLogout, onOpenAdmin }) {
   const openSearch = useCallback(() => {
     setModal(hasApiKey() ? { type: 'search' } : { type: 'apikey', next: 'search' })
   }, [])
+
+  useEffect(() => {
+    if (loadError) toast({ message: loadError, type: 'error' })
+  }, [loadError, toast])
 
   useEffect(() => {
     if (backupReminderShown.current || movies.length === 0) return
