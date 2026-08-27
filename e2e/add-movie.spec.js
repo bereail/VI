@@ -20,7 +20,7 @@ test('buscar una película en TMDB y agregarla a la biblioteca', async ({ page }
   await firstResult.click()
 
   await expect(page.getByRole('heading', { name: 'Agregar película' })).toBeVisible({ timeout: 10000 })
-  await page.getByRole('button', { name: 'Agregar película' }).click()
+  await page.getByRole('button', { name: 'Agregar película', exact: true }).click()
 
   await expect(page.getByRole('heading', { name: 'Agregar película' })).not.toBeVisible({ timeout: 10000 })
   await expect(page.getByLabel(new RegExp(escapeRegex(title), 'i'))).toBeVisible({ timeout: 10000 })
