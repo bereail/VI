@@ -6,7 +6,7 @@ import { AdminPage } from './pages/AdminPage'
 import CineMain from './CineMain'
 import './styles/global.css'
 
-const ADMIN_EMAIL = 'berenicesolohaga@gmail.com'
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL
 
 export default function App() {
   const { user, login, register, forgotPassword, resetPassword, guestLogin, logout } = useAuth()

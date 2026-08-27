@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/vi-api': {
-        target: 'https://ailonline.com.ar',
+        target: process.env.VITE_API_PROXY_TARGET || 'https://ailonline.com.ar',
         changeOrigin: true,
         secure: true,
       },
@@ -17,5 +17,6 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.js',
+    exclude: ['**/node_modules/**', '**/e2e/**'],
   },
 })

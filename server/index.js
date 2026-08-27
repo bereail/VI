@@ -5,7 +5,9 @@ const pool = require('./db')
 
 const app = express()
 app.set('trust proxy', 1)
-app.use(cors())
+app.use(cors({
+  origin: ['https://ailonline.com.ar', 'http://localhost:5173'],
+}))
 app.use(express.json())
 
 app.get('/health', (_, res) => res.json({ ok: true }))
