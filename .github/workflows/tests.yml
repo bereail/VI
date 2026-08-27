@@ -88,6 +88,15 @@ jobs:
           nohup npm run dev -- --port 5173 --strictPort > frontend.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://localhost:5173/vi/ && break; sleep 1; done
 
+      - name: Diagnóstico — probar /auth/guest directo
+        run: |
+          echo "--- guest login directo al backend ---"
+          curl -sv -X POST http://localhost:3002/auth/guest -H "Content-Type: application/json" -d '{}'
+          echo ""
+          echo "--- mismo pedido pasando por el proxy del frontend (con Origin) ---"
+          curl -sv -X POST http://localhost:5173/vi-api/auth/guest -H "Content-Type: application/json" -H "Origin: http://localhost:5173" -d '{}'
+          echo ""
+
       - name: Correr tests E2E
         run: npm run test:e2e
 
@@ -98,6 +107,7 @@ jobs:
           name: playwright-report
           path: |
             playwright-report/
+            test-results/
             server/server.log
             frontend.log
           retention-days: 7
